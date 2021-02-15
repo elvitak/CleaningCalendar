@@ -1,0 +1,8 @@
+# local user secrets
+.env
+
+# generated code & cache
+node_modules/
+dist/
+.cache/
+bin/
