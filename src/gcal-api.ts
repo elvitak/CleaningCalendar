@@ -90,6 +90,13 @@ export async function insertEvent(
   }).then(response => response.result);
 }
 
+export async function deleteEventFromGoogleCalendar(calendarId: string, eventId: string): Promise<object> {
+  return gapi.client.calendar.events.delete({
+    calendarId: calendarId,
+    eventId: eventId
+  });
+}
+
 /**
  *  Load the auth2 library and API client library.
  */

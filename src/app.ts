@@ -1,4 +1,4 @@
-import { findOrCreateCalendar, handleSignin, handleSignout, insertEvent, listEventsFromCalendar, loadGapi } from "./gcal-api";
+import { deleteEventFromGoogleCalendar, findOrCreateCalendar, handleSignin, handleSignout, insertEvent, listEventsFromCalendar, loadGapi } from "./gcal-api";
 /// <reference types="gapi.client.calendar" />
 
 class CleaningCalendar {
@@ -21,15 +21,18 @@ function drawEventList() {
   const ulEvents = document.getElementById("eventList")!;
   for (let i = 0; i < currentCalendar!.events.length; i++) {
     const listItem = document.createElement("li");
+    const iEvent = currentCalendar!.events[i];
     listItem.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
-    listItem.innerHTML = currentCalendar!.events[i].summary || "Unknown";
+    listItem.innerHTML = iEvent.summary || "Unknown";
     if (currentCalendar!.events[i].description !== undefined) {
-      listItem.innerHTML += " Notes:" + currentCalendar!.events[i].description;
+      listItem.innerHTML += " Notes:" + iEvent.description;
     }
     listItem.innerHTML += ` <span class="badge">(
-      <button type="button" class="btn btn-default" aria-label="Edit"><i class="fas fa-edit"></i></button>
-      <button type="button" class="btn btn-default" aria-label="Delete"><i class="far fa-trash-alt"></i></button>
+      <button type="button" name="editBtn" class="btn btn-default" aria-label="Edit"><i class="fas fa-edit"></i></button>
+      <button type="button" name="deleteBtn" class="btn btn-default" aria-label="Delete"><i class="far fa-trash-alt"></i></button>
       )</span>`;
+    listItem.querySelector("button[name='editBtn']")?.addEventListener("click", function () { editEvent(iEvent); });
+    listItem.querySelector("button[name='deleteBtn']")?.addEventListener("click", function () { deleteEvent(iEvent); });
     ulEvents.appendChild(listItem);
   }
 }
@@ -83,3 +86,25 @@ document.getElementById("singOutBtn")!
 //Event Listener for save button
 document.getElementById("cleaningEventForm")!
   .addEventListener("submit", handleCleaningEventSave);
+
+function deleteEvent(event: gapi.client.calendar.Event) {
+  if (window.confirm(`Do you really want to delete ${event.summary}`)) {
+    let rootEventId: string;
+    if (event.recurringEventId === undefined) {
+      rootEventId = event.id!;
+    } else {
+      rootEventId = event.recurringEventId!;
+    }
+    // const rootEventId = event.recurringEventId || event.id!;
+    deleteEventFromGoogleCalendar(currentCalendar!.id, rootEventId)
+      .then(() => {
+        currentCalendar!.events = currentCalendar!.events.filter(x => x !== event)
+      })
+      .then(() => drawEventList());
+  }
+}
+
+function editEvent(event: gapi.client.calendar.Event) {
+  //console.log("edit strada");
+  //console.table(event);
+}
