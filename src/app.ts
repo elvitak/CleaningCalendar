@@ -13,7 +13,10 @@ class CleaningCalendar {
 let currentCalendar: CleaningCalendar | undefined = undefined;
 
 function drawEventList() {
-  // console.log(currentCalendar!.events.length);
+  let element = document.getElementById("eventList");
+  while (element.firstChild) {
+    element.removeChild(element.firstChild);
+  }
 
   const ulEvents = document.getElementById("eventList")!;
   for (let i = 0; i < currentCalendar!.events.length; i++) {
