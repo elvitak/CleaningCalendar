@@ -42,6 +42,7 @@ function handleCleaningEventSave(event: Event) {
   insertEvent(currentCalendar!.id, title, rrule, notes)
     .then(event => currentCalendar!.events.push(event))
     .then(() => drawEventList());
+  document.getElementById("cleaningEventForm")!.reset();
 }
 
 const loadingScreen = document.getElementById("loadingScreen")!;
