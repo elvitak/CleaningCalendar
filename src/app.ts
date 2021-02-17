@@ -1,4 +1,4 @@
-import { deleteEventFromGoogleCalendar, findOrCreateCalendar, handleSignin, handleSignout, insertEvent, listEventsFromCalendar, loadGapi } from "./gcal-api";
+import { deleteEventFromGoogleCalendar, findOrCreateCalendar, handleSignin, handleSignout, insertEvent, listEventsFromCalendar, loadGapi, updateEventInGoogleCalendar } from "./gcal-api";
 /// <reference types="gapi.client.calendar" />
 
 class CleaningCalendar {
@@ -13,12 +13,12 @@ class CleaningCalendar {
 let currentCalendar: CleaningCalendar | undefined = undefined;
 
 function drawEventList() {
-  let element = document.getElementById("eventList");
-  while (element.firstChild) {
-    element.removeChild(element.firstChild);
+  const ulEvents = document.getElementById("eventList")!;
+
+  while (ulEvents.firstChild) {
+    ulEvents.removeChild(ulEvents.firstChild);
   }
 
-  const ulEvents = document.getElementById("eventList")!;
   for (let i = 0; i < currentCalendar!.events.length; i++) {
     const listItem = document.createElement("li");
     const iEvent = currentCalendar!.events[i];
@@ -31,21 +31,31 @@ function drawEventList() {
       <button type="button" name="editBtn" class="btn btn-default" aria-label="Edit"><i class="fas fa-edit"></i></button>
       <button type="button" name="deleteBtn" class="btn btn-default" aria-label="Delete"><i class="far fa-trash-alt"></i></button>
       )</span>`;
-    listItem.querySelector("button[name='editBtn']")?.addEventListener("click", function () { editEvent(iEvent); });
-    listItem.querySelector("button[name='deleteBtn']")?.addEventListener("click", function () { deleteEvent(iEvent); });
+    listItem.querySelector("button[name='editBtn']")?.addEventListener("click", () => editEvent(iEvent));
+    listItem.querySelector("button[name='deleteBtn']")?.addEventListener("click", () => deleteEvent(iEvent));
     ulEvents.appendChild(listItem);
   }
 }
 
 function handleCleaningEventSave(event: Event) {
   event.preventDefault();
+  const eventId = (document.getElementById("eventId") as HTMLInputElement).value;
   const title = (document.getElementById("title") as HTMLInputElement).value;
   const rrule = (document.getElementById("frequency") as HTMLInputElement).value; //RRULE:FREQ=MONTHLY;BYSETPOS=1;BYDAY=SU;INTERVAL=3
   const notes = (document.getElementById("floatingTextarea") as HTMLTextAreaElement).value;
-  insertEvent(currentCalendar!.id, title, rrule, notes)
-    .then(event => currentCalendar!.events.push(event))
-    .then(() => drawEventList());
-  document.getElementById("cleaningEventForm")!.reset();
+  if (eventId !== "") {
+    updateEventInGoogleCalendar(currentCalendar!.id, eventId, title, rrule, notes)
+      .then(updatedEvent => {
+        const eventIndex = currentCalendar!.events.findIndex(ev => ev.id === eventId);
+        currentCalendar!.events[eventIndex] = updatedEvent;
+      })
+      .then(() => drawEventList());
+  } else {
+    insertEvent(currentCalendar!.id, title, rrule, notes)
+      .then(insertedEvent => currentCalendar!.events.push(insertedEvent))
+      .then(() => drawEventList());
+  }
+  (document.getElementById("cleaningEventForm") as HTMLFormElement).reset();
 }
 
 const loadingScreen = document.getElementById("loadingScreen")!;
@@ -89,14 +99,7 @@ document.getElementById("cleaningEventForm")!
 
 function deleteEvent(event: gapi.client.calendar.Event) {
   if (window.confirm(`Do you really want to delete ${event.summary}`)) {
-    let rootEventId: string;
-    if (event.recurringEventId === undefined) {
-      rootEventId = event.id!;
-    } else {
-      rootEventId = event.recurringEventId!;
-    }
-    // const rootEventId = event.recurringEventId || event.id!;
-    deleteEventFromGoogleCalendar(currentCalendar!.id, rootEventId)
+    deleteEventFromGoogleCalendar(currentCalendar!.id, event.id!)
       .then(() => {
         currentCalendar!.events = currentCalendar!.events.filter(x => x !== event)
       })
@@ -105,6 +108,8 @@ function deleteEvent(event: gapi.client.calendar.Event) {
 }
 
 function editEvent(event: gapi.client.calendar.Event) {
-  //console.log("edit strada");
-  //console.table(event);
+  (document.getElementById("title") as HTMLInputElement).value = event.summary || "";
+  (document.getElementById("frequency") as HTMLInputElement).value = event.recurrence?.[0] || "";
+  (document.getElementById("floatingTextarea") as HTMLTextAreaElement).value = event.description || "";
+  (document.getElementById("eventId") as HTMLInputElement).value = event.id || "";
 }
