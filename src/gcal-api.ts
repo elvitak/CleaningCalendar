@@ -59,12 +59,10 @@ export async function findOrCreateCalendar(): Promise<string> {
 
 export async function listEventsFromCalendar(id: string): Promise<gapi.client.calendar.Event[]> {
   return gapi.client.calendar.events.list({
-    'calendarId': id,
-    'timeMin': (new Date()).toISOString(),
-    'showDeleted': false,
-    'singleEvents': true,
-    'maxResults': 10,
-    'orderBy': 'startTime'
+    calendarId: id,
+    timeMin: (new Date()).toISOString(),
+    maxResults: 100,
+    fields: "items(id, summary, description, start, end, recurrence)"
   }).then(response => {
     return response.result.items!;
   });
@@ -95,6 +93,23 @@ export async function deleteEventFromGoogleCalendar(calendarId: string, eventId:
     calendarId: calendarId,
     eventId: eventId
   });
+}
+
+export async function updateEventInGoogleCalendar(calendarId: string, eventId: string, title: string, rrule: string, notes: string): Promise<gapi.client.calendar.Event> {
+  const date = new Date().toISOString().substring(0, 10);
+  const cleaningEvent: gapi.client.calendar.Event = {
+    summary: title,
+    description: notes,
+    start: { date: date },
+    end: { date: date },
+    recurrence: [rrule],
+  }
+
+  return gapi.client.calendar.events.update({
+    calendarId: calendarId,
+    eventId: eventId,
+    resource: cleaningEvent
+  }).then(response => response.result);
 }
 
 /**
