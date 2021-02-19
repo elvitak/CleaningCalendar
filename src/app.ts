@@ -11,12 +11,14 @@ function drawEventList() {
     ulEvents.removeChild(ulEvents.firstChild);
   }
 
-  for (let i = 0; i < currentCalendar!.events.length; i++) {
+  // To avoid multiple copies of `get events`, create const with result.
+  const currentEvents = currentCalendar!.events;
+  for (let i = 0; i < currentEvents.length; i++) {
     const listItem = document.createElement("li");
-    const iEvent = currentCalendar!.events[i];
+    const iEvent = currentEvents[i];
     listItem.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
     listItem.innerHTML = iEvent.summary || "Unknown";
-    if (currentCalendar!.events[i].description !== undefined) {
+    if (currentEvents[i].description !== undefined) {
       listItem.innerHTML += " Notes:" + iEvent.description;
     }
     listItem.innerHTML += ` <span class="badge">(
