@@ -1,14 +1,6 @@
-import { deleteEventFromGoogleCalendar, findOrCreateCalendar, handleSignin, handleSignout, insertEvent, listEventsFromCalendar, loadGapi, updateEventInGoogleCalendar } from "./gcal-api";
+import { CleaningCalendar } from "./cleaningCalendar";
+import { deleteEventFromGoogleCalendar, findOrCreateCalendar, handleSignin, handleSignout, insertEventToGoogleCalendar, listEventsFromGoogleCalendar, loadGapi, updateEventInGoogleCalendar } from "./gcal-api";
 /// <reference types="gapi.client.calendar" />
-
-class CleaningCalendar {
-  id: string;
-  events: gapi.client.calendar.Event[] = [];
-
-  constructor(id: string) {
-    this.id = id;
-  }
-}
 
 let currentCalendar: CleaningCalendar | undefined = undefined;
 
@@ -45,14 +37,11 @@ function handleCleaningEventSave(event: Event) {
   const notes = (document.getElementById("notes") as HTMLTextAreaElement).value;
   if (eventId !== "") {
     updateEventInGoogleCalendar(currentCalendar!.id, eventId, title, rrule, notes)
-      .then(updatedEvent => {
-        const eventIndex = currentCalendar!.events.findIndex(ev => ev.id === eventId);
-        currentCalendar!.events[eventIndex] = updatedEvent;
-      })
+      .then(updatedEvent => currentCalendar!.editEvent(updatedEvent))
       .then(() => drawEventList());
   } else {
-    insertEvent(currentCalendar!.id, title, rrule, notes)
-      .then(insertedEvent => currentCalendar!.events.push(insertedEvent))
+    insertEventToGoogleCalendar(currentCalendar!.id, title, rrule, notes)
+      .then(insertedEvent => currentCalendar!.addEvent(insertedEvent))
       .then(() => drawEventList());
   }
   (document.getElementById("cleaningEventForm") as HTMLFormElement).reset();
@@ -73,10 +62,8 @@ function handleIsSignedInChange(isSignedIn: boolean): void {
       currentCalendar = new CleaningCalendar(id);
       return id;
     }).then(id => {
-      return listEventsFromCalendar(id)
-        .then(events => {
-          currentCalendar!.events = events;
-        });
+      return listEventsFromGoogleCalendar(id)
+        .then(events => currentCalendar!.events = events);
     }).then(() => drawEventList());
   } else {
     loginScreen.classList.remove("d-none");
@@ -100,9 +87,7 @@ document.getElementById("cleaningEventForm")!
 function deleteEvent(event: gapi.client.calendar.Event) {
   if (window.confirm(`Do you really want to delete ${event.summary}`)) {
     deleteEventFromGoogleCalendar(currentCalendar!.id, event.id!)
-      .then(() => {
-        currentCalendar!.events = currentCalendar!.events.filter(x => x !== event)
-      })
+      .then(() => currentCalendar!.deleteEvent(event))
       .then(() => drawEventList());
   }
 }
