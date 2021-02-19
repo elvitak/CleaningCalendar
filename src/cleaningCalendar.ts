@@ -1,11 +1,11 @@
 /// <reference types="gapi.client.calendar" />
 
 export class CleaningCalendar {
-  id: string;
+  private _id: string;
   private _events: gapi.client.calendar.Event[] = [];
 
   constructor(id: string) {
-    this.id = id;
+    this._id = id;
   }
 
   addEvent(ev: gapi.client.calendar.Event): void {
@@ -20,6 +20,11 @@ export class CleaningCalendar {
     const eventIndex = this._events.findIndex(x => x.id === ev.id);
     this._events[eventIndex] = ev;
   }
+
+  get id(): string {
+    return this._id;
+  }
+
 
   get events(): gapi.client.calendar.Event[] {
     //make a copy of event
