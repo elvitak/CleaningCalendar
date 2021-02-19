@@ -42,7 +42,7 @@ function handleCleaningEventSave(event: Event) {
   const eventId = (document.getElementById("eventId") as HTMLInputElement).value;
   const title = (document.getElementById("title") as HTMLInputElement).value;
   const rrule = (document.getElementById("frequency") as HTMLInputElement).value; //RRULE:FREQ=MONTHLY;BYSETPOS=1;BYDAY=SU;INTERVAL=3
-  const notes = (document.getElementById("floatingTextarea") as HTMLTextAreaElement).value;
+  const notes = (document.getElementById("notes") as HTMLTextAreaElement).value;
   if (eventId !== "") {
     updateEventInGoogleCalendar(currentCalendar!.id, eventId, title, rrule, notes)
       .then(updatedEvent => {
@@ -110,6 +110,6 @@ function deleteEvent(event: gapi.client.calendar.Event) {
 function editEvent(event: gapi.client.calendar.Event) {
   (document.getElementById("title") as HTMLInputElement).value = event.summary || "";
   (document.getElementById("frequency") as HTMLInputElement).value = event.recurrence?.[0] || "";
-  (document.getElementById("floatingTextarea") as HTMLTextAreaElement).value = event.description || "";
+  (document.getElementById("notes") as HTMLTextAreaElement).value = event.description || "";
   (document.getElementById("eventId") as HTMLInputElement).value = event.id || "";
 }
