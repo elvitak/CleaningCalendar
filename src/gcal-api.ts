@@ -57,7 +57,7 @@ export async function findOrCreateCalendar(): Promise<string> {
     });
 }
 
-export async function listEventsFromCalendar(id: string): Promise<gapi.client.calendar.Event[]> {
+export async function listEventsFromGoogleCalendar(id: string): Promise<gapi.client.calendar.Event[]> {
   return gapi.client.calendar.events.list({
     calendarId: id,
     timeMin: (new Date()).toISOString(),
@@ -68,7 +68,7 @@ export async function listEventsFromCalendar(id: string): Promise<gapi.client.ca
   });
 }
 
-export async function insertEvent(
+export async function insertEventToGoogleCalendar(
   calendarId: string, title: string, rrule: string, notes: string
 ): Promise<gapi.client.calendar.Event> {
 

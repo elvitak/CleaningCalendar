@@ -1,14 +1,6 @@
-import { deleteEventFromGoogleCalendar, findOrCreateCalendar, handleSignin, handleSignout, insertEvent, listEventsFromCalendar, loadGapi, updateEventInGoogleCalendar } from "./gcal-api";
+import { CleaningCalendar } from "./cleaningCalendar";
+import { deleteEventFromGoogleCalendar, findOrCreateCalendar, handleSignin, handleSignout, insertEventToGoogleCalendar, listEventsFromGoogleCalendar, loadGapi, updateEventInGoogleCalendar } from "./gcal-api";
 /// <reference types="gapi.client.calendar" />
-
-class CleaningCalendar {
-  id: string;
-  events: gapi.client.calendar.Event[] = [];
-
-  constructor(id: string) {
-    this.id = id;
-  }
-}
 
 let currentCalendar: CleaningCalendar | undefined = undefined;
 
@@ -19,12 +11,14 @@ function drawEventList() {
     ulEvents.removeChild(ulEvents.firstChild);
   }
 
-  for (let i = 0; i < currentCalendar!.events.length; i++) {
+  // To avoid multiple copies of `get events`, create const with result.
+  const currentEvents = currentCalendar!.events;
+  for (let i = 0; i < currentEvents.length; i++) {
     const listItem = document.createElement("li");
-    const iEvent = currentCalendar!.events[i];
+    const iEvent = currentEvents[i];
     listItem.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
     listItem.innerHTML = iEvent.summary || "Unknown";
-    if (currentCalendar!.events[i].description !== undefined) {
+    if (currentEvents[i].description !== undefined) {
       listItem.innerHTML += " Notes:" + iEvent.description;
     }
     listItem.innerHTML += ` <span class="badge">(
@@ -45,14 +39,11 @@ function handleCleaningEventSave(event: Event) {
   const notes = (document.getElementById("notes") as HTMLTextAreaElement).value;
   if (eventId !== "") {
     updateEventInGoogleCalendar(currentCalendar!.id, eventId, title, rrule, notes)
-      .then(updatedEvent => {
-        const eventIndex = currentCalendar!.events.findIndex(ev => ev.id === eventId);
-        currentCalendar!.events[eventIndex] = updatedEvent;
-      })
+      .then(updatedEvent => currentCalendar!.editEvent(updatedEvent))
       .then(() => drawEventList());
   } else {
-    insertEvent(currentCalendar!.id, title, rrule, notes)
-      .then(insertedEvent => currentCalendar!.events.push(insertedEvent))
+    insertEventToGoogleCalendar(currentCalendar!.id, title, rrule, notes)
+      .then(insertedEvent => currentCalendar!.addEvent(insertedEvent))
       .then(() => drawEventList());
   }
   (document.getElementById("cleaningEventForm") as HTMLFormElement).reset();
@@ -73,10 +64,8 @@ function handleIsSignedInChange(isSignedIn: boolean): void {
       currentCalendar = new CleaningCalendar(id);
       return id;
     }).then(id => {
-      return listEventsFromCalendar(id)
-        .then(events => {
-          currentCalendar!.events = events;
-        });
+      return listEventsFromGoogleCalendar(id)
+        .then(events => currentCalendar!.events = events);
     }).then(() => drawEventList());
   } else {
     loginScreen.classList.remove("d-none");
@@ -100,9 +89,7 @@ document.getElementById("cleaningEventForm")!
 function deleteEvent(event: gapi.client.calendar.Event) {
   if (window.confirm(`Do you really want to delete ${event.summary}`)) {
     deleteEventFromGoogleCalendar(currentCalendar!.id, event.id!)
-      .then(() => {
-        currentCalendar!.events = currentCalendar!.events.filter(x => x !== event)
-      })
+      .then(() => currentCalendar!.deleteEvent(event))
       .then(() => drawEventList());
   }
 }
