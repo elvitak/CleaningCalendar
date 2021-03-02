@@ -1,23 +1,24 @@
 import { CleaningCalendar } from "./cleaningCalendar";
 import { deleteEventFromGoogleCalendar, findOrCreateCalendar, handleSignin, handleSignout, insertEventToGoogleCalendar, listEventsFromGoogleCalendar, loadGapi, updateEventInGoogleCalendar } from "./gcal-api";
 import { RRule, RRuleSet, rrulestr, Weekday, Frequency } from 'rrule'
+import { jobs } from "googleapis/build/src/apis/jobs";
 
 /// <reference types="gapi.client.calendar" />
 
-const today = new Date();
-// const fv: string = (document.getElementById("f") as HTMLInputElement).value;
-// const frequency = Frequency[fv as keyof typeof Frequency];
-console.log(Frequency.YEARLY.toString());
-// (document.getElementById("asdasd") as HTMLOptionElement).value = Frequency.YEARLY.toString();
-const rule = new RRule({
-  freq: 2,
-  interval: 3,
-  byweekday: [0, RRule.FR],
-  // dtstart: new Date(Date.UTC(2012, 1, 1, 10, 30)),
-  until: new Date(today.getFullYear() + 3, today.getMonth(), today.getDate())
-});
+// const today = new Date();
+// // const fv: string = (document.getElementById("f") as HTMLInputElement).value;
+// // const frequency = Frequency[fv as keyof typeof Frequency];
+// console.log(Frequency.YEARLY.toString());
+// // (document.getElementById("asdasd") as HTMLOptionElement).value = Frequency.YEARLY.toString();
+// const rule = new RRule({
+//   freq: 2,
+//   interval: 3,
+//   byweekday: [0, RRule.FR],
+//   // dtstart: new Date(Date.UTC(2012, 1, 1, 10, 30)),
+//   until: new Date(today.getFullYear() + 3, today.getMonth(), today.getDate())
+// });
 
-console.log(rule.toString());
+// console.log(rule.toString());
 
 let currentCalendar: CleaningCalendar | undefined = undefined;
 
@@ -48,6 +49,58 @@ function drawEventList() {
   }
 }
 
+function readWeeklyRrule() {
+  const interval = (document.getElementById("interval") as HTMLInputElement).valueAsNumber;
+
+  const fieldsWeekday = document.getElementsByName("weekday") as NodeListOf<HTMLInputElement>;
+  const weekdays = [];
+  for (let i = 0; i < fieldsWeekday.length; i++) {
+    if (fieldsWeekday[i].checked) {
+      weekdays.push(parseInt(fieldsWeekday[i].value));
+    }
+  }
+  // const today = new Date();
+  const rrule = new RRule({
+    freq: RRule.WEEKLY,
+    interval: interval,
+    byweekday: weekdays
+    // until: new Date(today.getFullYear() + 3, today.getMonth(), today.getDate())
+  });
+  return rrule.toString();
+}
+
+function readMonthlyRule(): string {
+  const interval = (document.getElementById("interval") as HTMLInputElement).valueAsNumber;
+  const onSpecificDay = (document.getElementById("onSpecificDay") as HTMLInputElement).valueAsNumber;
+  const montlyFirstChoice = document.getElementById("montlyFirstChoice") as HTMLInputElement;
+  const monthlySecondChoice = document.getElementById("monthlySecondChoice") as HTMLInputElement;
+  const weekCount = parseInt((document.getElementById("weekCount") as HTMLSelectElement).value);
+  const byweekday = parseInt((document.getElementById("weekday") as HTMLSelectElement).value);
+
+  //const today = new Date();
+  if (montlyFirstChoice.checked) {
+    const rrule = new RRule({
+      freq: RRule.MONTHLY,
+      interval: interval,
+      bymonthday: onSpecificDay
+      //until: new Date(today.getFullYear() + 3, today.getMonth(), today.getDate())
+    });
+    return rrule.toString();
+  }
+  if (monthlySecondChoice.checked) {
+    const rrule = new RRule({
+      freq: RRule.MONTHLY,
+      interval: interval,
+      bysetpos: weekCount,
+      byweekday: byweekday
+    });
+    return rrule.toString();
+
+  }
+
+}
+
+
 function handleCleaningEventSave(event: Event) {
   event.preventDefault();
   const eventId = (document.getElementById("eventId") as HTMLInputElement).value;
@@ -55,24 +108,11 @@ function handleCleaningEventSave(event: Event) {
   const frequency = (document.getElementById("frequency") as HTMLSelectElement).value;
   let rruleString: string = "";
   if (frequency === "WEEKLY") {
-    const interval = (document.getElementById("interval") as HTMLInputElement).valueAsNumber;
-
-    const fieldsWeekday = document.getElementsByName("weekday") as NodeListOf<HTMLInputElement>;
-    const weekdays = [];
-    for (let i = 0; i < fieldsWeekday.length; i++) {
-      if (fieldsWeekday[i].checked) {
-        weekdays.push(parseInt(fieldsWeekday[i].value));
-      }
-    }
-    const rrule = new RRule({
-      freq: RRule.WEEKLY,
-      interval: interval,
-      byweekday: weekdays,
-      until: new Date(today.getFullYear() + 3, today.getMonth(), today.getDate())
-    });
-    rruleString = rrule.toString();
-    console.log(rruleString);
+    rruleString = readWeeklyRrule();
+  } else if (frequency === "MONTHLY") {
+    rruleString = readMonthlyRule();
   }
+
   const notes = (document.getElementById("notes") as HTMLTextAreaElement).value;
   if (eventId !== "") {
     updateEventInGoogleCalendar(currentCalendar!.id, eventId, title, rruleString, notes)

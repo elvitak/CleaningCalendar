@@ -92,40 +92,38 @@
           <!-- first option -->
           <div class="row row-cols-lg-auto g-3 align-items-center">
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" value="" id="onSpecificDay">
+              <input class="form-check-input" type="checkbox" id="montlyFirstChoice" value="">
               <label class="form-check-label">on day</label>
-              <datalist id="listOfMonthDates"></datalist>
             </div>
             <div class="mb-3">
-              <input type="number" class="form-control" list="listOfMonthDates">
+              <datalist id="listOfMonthDates"></datalist>
+              <input type="number" id="onSpecificDay" class="form-control" list="listOfMonthDates" placeholder="3">
             </div>
           </div>
           <!-- second option -->
           <div class="row row-cols-lg-auto g-3 align-items-center mb-3">
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" value="" id="onDay">
+              <input class="form-check-input" type="checkbox" value="" id="monthlySecondChoice">
               <label class="form-check-label">on the </label>
             </div>
             <div class="col-auto">
-              <select class="form-select" id="interval">
+              <select class="form-select" id="weekCount">
                 <option value="1">First</option>
-                <option value="1">Second</option>
-                <option value="2">Third</option>
-                <option value="3">Fourth</option>
-                <option value="3">Last</option>
+                <option value="2">Second</option>
+                <option value="3">Third</option>
+                <option value="4">Fourth</option>
+                <option value="-1">Last</option>
               </select>
             </div>
             <div class="col-auto">
               <select class="form-select" id="weekday">
-                <option selected>Monday</option>
+                <option value="0" selected>Monday</option>
                 <option value="1">Thuesday</option>
                 <option value="2">Wednesday</option>
                 <option value="3">Thursday</option>
-                <option value="3">Friday</option>
-                <option value="3">Sunday</option>
-                <option value="3">Saturday</option>
-                <option value="3">First weekday</option>
-                <option value="3">First weekend day</option>
+                <option value="4">Friday</option>
+                <option value="5">Sunday</option>
+                <option value="6">Saturday</option>
               </select>
             </div>
           </div>
@@ -172,8 +170,6 @@
                 <option value="4">Friday</option>
                 <option value="3">Sunday</option>
                 <option value="3">Saturday</option>
-                <option value="3">First weekday</option>
-                <option value="3">First weekend day</option>
               </select>
             </div>
             <label class="form-check-label">of</label>
