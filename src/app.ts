@@ -52,7 +52,12 @@ function handleCleaningEventSave(event: Event) {
 const loadingScreen = document.getElementById("loadingScreen")!;
 const loginScreen = document.getElementById("loginScreen")!;
 const mainScreen = document.getElementById("mainScreen")!;
-
+const weekly = document.getElementById("weekly")!;
+const monthly = document.getElementById("monthly")!;
+const yearly = document.getElementById("yearly")!;
+const intervalWeek = document.getElementById("intervalWeek")!;
+const intervalMonth = document.getElementById("intervalMonth")!;
+const intervalYear = document.getElementById("intervalYear")!;
 
 function handleIsSignedInChange(isSignedIn: boolean): void {
   loadingScreen.classList.add("d-none");
@@ -73,6 +78,45 @@ function handleIsSignedInChange(isSignedIn: boolean): void {
   }
 }
 
+(document.getElementById("frequency") as HTMLSelectElement)
+  .addEventListener("change", handleFrequencyChange);
+
+function handleFrequencyChange(this: HTMLSelectElement) {
+  const frequencyType = this.value;
+
+  intervalWeek.classList.toggle("d-none", frequencyType !== "WEEKLY");
+  intervalMonth.classList.toggle("d-none", frequencyType !== "MONTHLY");
+  intervalYear.classList.toggle("d-none", frequencyType !== "YEARLY");
+  weekly.classList.toggle("d-none", frequencyType !== "WEEKLY");
+  monthly.classList.toggle("d-none", frequencyType !== "MONTHLY");
+  yearly.classList.toggle("d-none", frequencyType !== "YEARLY");
+}
+
+
+function preloadDates() {
+  const datesOfMonth = document.getElementById("listOfMonthDates");
+  for (let i = 1; i <= 31; i++) {
+    let option = document.createElement("option") as HTMLOptionElement;
+    option.value = i.toString();
+    datesOfMonth?.appendChild(option);
+  }
+}
+
+function preloadMonths() {
+  const monthNames = ["January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"];
+  const monthFirstOption = document.getElementById("monthFirstOption")!;
+  const monthSecondOption = document.getElementById("monthSecondOption")!;
+
+  for (let i = 0; i < monthNames.length; i++) {
+    let option = document.createElement("option") as HTMLOptionElement;
+    option.value = i.toString();
+    option.text = monthNames[i];
+
+    monthFirstOption.appendChild(option.cloneNode(true));
+    monthSecondOption.appendChild(option.cloneNode(true));
+  }
+}
 
 loadGapi(handleIsSignedInChange);
 
@@ -85,6 +129,9 @@ document.getElementById("singOutBtn")!
 //Event Listener for save button
 document.getElementById("cleaningEventForm")!
   .addEventListener("submit", handleCleaningEventSave);
+
+preloadDates();
+preloadMonths();
 
 function deleteEvent(event: gapi.client.calendar.Event) {
   if (window.confirm(`Do you really want to delete ${event.summary}`)) {

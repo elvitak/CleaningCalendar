@@ -33,24 +33,157 @@
           <label for="title" class="form-label">Title</label>
           <input type="text" class="form-control" id="title">
         </div>
-        <div class="mb-3">
-          <label for="frequency" class="form-label">Frequency</label>
-          <input type="text" class="form-control" id="frequency">
+        <div class="row row-cols-lg-auto g-3 align-items-center mb-3">
+          <label class="col-sm-1 col-form-label">Repeat</label>
+          <div class="col-auto">
+            <select class="form-select" id="frequency">
+              <option value="WEEKLY">Weekly</option>
+              <option value="MONTHLY">Monthly</option>
+              <option value="YEARLY">Yearly</option>
+            </select>
+          </div>
+          <label class="col-sm-1 col-form-label">every</label>
+          <div class="col-auto">
+            <div class="input-group">
+              <input type="number" class="form-control" id="interval" placeholder="1">
+            </div>
+          </div>
+          <label class="col-sm-2 col-form-label">
+            <span id="intervalWeek">week(s)</span>
+            <span id="intervalMonth" class="d-none">month(s)</span>
+            <span id="intervalYear" class="d-none">year(s)</span>
+          </label>
         </div>
-        <div class="mb-3 form-check">
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="monday" value="option1">
-            <label class="form-check-label" for="inlineCheckbox1">Mon</label>
-          </div>
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="inlineCheckbox2" value="option2">
-            <label class="form-check-label" for="inlineCheckbox2">2</label>
-          </div>
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="inlineCheckbox3" value="option3">
-            <label class="form-check-label" for="inlineCheckbox3">3</label>
+        <!-- For Weekly-->
+        <div id="weekly">
+          <div class="mb-3 form-check">
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="monday" value="option1">
+              <label class="form-check-label">Mon</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="inlineCheckbox2" value="option2">
+              <label class="form-check-label">Thu</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="inlineCheckbox3" value="option3">
+              <label class="form-check-label">Wed</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="inlineCheckbox3" value="option3">
+              <label class="form-check-label">Thu</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="inlineCheckbox3" value="option3">
+              <label class="form-check-label">Fri</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="inlineCheckbox3" value="option3">
+              <label class="form-check-label">Sun</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="inlineCheckbox3" value="option3">
+              <label class="form-check-label">Sat</label>
+            </div>
           </div>
         </div>
+        <!-- For Montly-->
+        <div id="monthly" class="d-none">
+          <!-- first option -->
+          <div class="row row-cols-lg-auto g-3 align-items-center">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="" id="onSpecificDay">
+              <label class="form-check-label">on day</label>
+              <datalist id="listOfMonthDates"></datalist>
+            </div>
+            <div class="mb-3">
+              <input type="number" class="form-control" list="listOfMonthDates">
+            </div>
+          </div>
+          <!-- second option -->
+          <div class="row row-cols-lg-auto g-3 align-items-center mb-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="" id="onDay">
+              <label class="form-check-label">on the </label>
+            </div>
+            <div class="col-auto">
+              <select class="form-select" id="interval">
+                <option value="1">First</option>
+                <option value="1">Second</option>
+                <option value="2">Third</option>
+                <option value="3">Fourth</option>
+                <option value="3">Last</option>
+              </select>
+            </div>
+            <div class="col-auto">
+              <select class="form-select" id="weekday">
+                <option selected>Monday</option>
+                <option value="1">Thuesday</option>
+                <option value="2">Wednesday</option>
+                <option value="3">Thursday</option>
+                <option value="3">Friday</option>
+                <option value="3">Sunday</option>
+                <option value="3">Saturday</option>
+                <option value="3">First weekday</option>
+                <option value="3">First weekend day</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <!-- For Yearly-->
+        <div id="yearly" class="d-none">
+          <!-- first option -->
+          <div class="row row-cols-lg-auto g-3 align-items-center">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="" id="yearlyOnSpecifixDay">
+              <label class="form-check-label">on</label>
+            </div>
+            <div class="col-auto">
+              <select class="form-select" id="monthFirstOption">
+              </select>
+            </div>
+            <datalist id="listOfMonthDates"></datalist>
+            <div class="mb-3">
+              <label class="form-label"></label>
+              <input type="number" class="form-control" list="listOfMonthDates">
+            </div>
+          </div>
+          <!-- second option -->
+          <div class="row row-cols-lg-auto g-3 align-items-center mb-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="" id="yearlyOnDate">
+              <label class="form-check-label">on the </label>
+            </div>
+            <div class="col-auto">
+              <select class="form-select" id="needToChange">
+                <option value="1">First</option>
+                <option value="1">Second</option>
+                <option value="2">Third</option>
+                <option value="3">Fourth</option>
+                <option value="4">Last</option>
+              </select>
+            </div>
+            <div class="col-auto">
+              <select class="form-select" id="needToChange">
+                <option value="1">Monday</option>
+                <option value="1">Thuesday</option>
+                <option value="2">Wednesday</option>
+                <option value="3">Thursday</option>
+                <option value="4">Friday</option>
+                <option value="3">Sunday</option>
+                <option value="3">Saturday</option>
+                <option value="3">First weekday</option>
+                <option value="3">First weekend day</option>
+              </select>
+            </div>
+            <label class="form-check-label">of</label>
+            <div class="col-auto">
+              <select class="form-select" id="monthSecondOption">
+              </select>
+            </div>
+          </div>
+        </div>
+        <!-- Notes -->
         <div class="mb-3 form-floating">
           <textarea class="form-control" placeholder="Leave notes here" id="notes"></textarea>
           <label for="notes">Notes</label>
