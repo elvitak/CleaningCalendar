@@ -5,21 +5,6 @@ import { jobs } from "googleapis/build/src/apis/jobs";
 
 /// <reference types="gapi.client.calendar" />
 
-// const today = new Date();
-// // const fv: string = (document.getElementById("f") as HTMLInputElement).value;
-// // const frequency = Frequency[fv as keyof typeof Frequency];
-// console.log(Frequency.YEARLY.toString());
-// // (document.getElementById("asdasd") as HTMLOptionElement).value = Frequency.YEARLY.toString();
-// const rule = new RRule({
-//   freq: 2,
-//   interval: 3,
-//   byweekday: [0, RRule.FR],
-//   // dtstart: new Date(Date.UTC(2012, 1, 1, 10, 30)),
-//   until: new Date(today.getFullYear() + 3, today.getMonth(), today.getDate())
-// });
-
-// console.log(rule.toString());
-
 let currentCalendar: CleaningCalendar | undefined = undefined;
 
 function drawEventList() {
@@ -74,8 +59,8 @@ function readMonthlyRule(): string {
   const onSpecificDay = (document.getElementById("onSpecificDay") as HTMLInputElement).valueAsNumber;
   const montlyFirstChoice = document.getElementById("montlyFirstChoice") as HTMLInputElement;
   const monthlySecondChoice = document.getElementById("monthlySecondChoice") as HTMLInputElement;
-  const weekCount = parseInt((document.getElementById("weekCount") as HTMLSelectElement).value);
-  const byweekday = parseInt((document.getElementById("weekday") as HTMLSelectElement).value);
+  const weekCount = parseInt((document.getElementById("weekCountForMonthly") as HTMLSelectElement).value);
+  const byweekday = parseInt((document.getElementById("weekdayMonthly") as HTMLSelectElement).value);
 
   //const today = new Date();
   if (montlyFirstChoice.checked) {
@@ -95,11 +80,39 @@ function readMonthlyRule(): string {
       byweekday: byweekday
     });
     return rrule.toString();
-
   }
-
 }
 
+function readYearlyRule(): string {
+  const yearlyFirstChoice = document.getElementById("yearlyFirstChoice") as HTMLInputElement;
+  const yearlySecondChoice = document.getElementById("yearlySecondChoice") as HTMLInputElement;
+  const interval = (document.getElementById("interval") as HTMLInputElement).valueAsNumber;
+  const bymonthFirstOption = parseInt((document.getElementById("monthFirstOption") as HTMLSelectElement).value);
+  const dateOfTheMonth = (document.getElementById("dateOfTheMonth") as HTMLInputElement).valueAsNumber;
+  const weekCount = parseInt((document.getElementById("weekCountForYearly") as HTMLSelectElement).value);
+  const byweekday = parseInt((document.getElementById("weekdayYearly") as HTMLSelectElement).value);
+  const bymonthSecondOption = parseInt((document.getElementById("monthSecondOption") as HTMLSelectElement).value);
+
+  if (yearlyFirstChoice.checked) {
+    const rrule = new RRule({
+      freq: RRule.YEARLY,
+      interval: interval,
+      bymonth: bymonthFirstOption,
+      bymonthday: dateOfTheMonth
+    });
+    return rrule.toString();
+  }
+  if (yearlySecondChoice.checked) {
+    const rrule = new RRule({
+      freq: RRule.YEARLY,
+      interval: interval,
+      bysetpos: weekCount,
+      byweekday: byweekday,
+      bymonth: bymonthSecondOption
+    });
+    return rrule.toString();
+  }
+}
 
 function handleCleaningEventSave(event: Event) {
   event.preventDefault();
@@ -111,6 +124,8 @@ function handleCleaningEventSave(event: Event) {
     rruleString = readWeeklyRrule();
   } else if (frequency === "MONTHLY") {
     rruleString = readMonthlyRule();
+  } else {
+    rruleString = readYearlyRule();
   }
 
   const notes = (document.getElementById("notes") as HTMLTextAreaElement).value;
@@ -187,7 +202,7 @@ function preloadMonths() {
 
   for (let i = 0; i < monthNames.length; i++) {
     let option = document.createElement("option") as HTMLOptionElement;
-    option.value = i.toString();
+    option.value = (i + 1).toString();
     option.text = monthNames[i];
 
     monthFirstOption.appendChild(option.cloneNode(true));

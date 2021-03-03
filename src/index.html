@@ -10,6 +10,8 @@
 </head>
 
 <body>
+  <datalist id="listOfMonthDates"></datalist>
+
   <div class="container">
     <h1>Cleaning Calendar</h1>
 
@@ -96,7 +98,6 @@
               <label class="form-check-label">on day</label>
             </div>
             <div class="mb-3">
-              <datalist id="listOfMonthDates"></datalist>
               <input type="number" id="onSpecificDay" class="form-control" list="listOfMonthDates" placeholder="3">
             </div>
           </div>
@@ -107,7 +108,7 @@
               <label class="form-check-label">on the </label>
             </div>
             <div class="col-auto">
-              <select class="form-select" id="weekCount">
+              <select class="form-select" id="weekCountForMonthly">
                 <option value="1">First</option>
                 <option value="2">Second</option>
                 <option value="3">Third</option>
@@ -116,7 +117,7 @@
               </select>
             </div>
             <div class="col-auto">
-              <select class="form-select" id="weekday">
+              <select class="form-select" id="weekdayMonthly">
                 <option value="0" selected>Monday</option>
                 <option value="1">Thuesday</option>
                 <option value="2">Wednesday</option>
@@ -133,43 +134,42 @@
           <!-- first option -->
           <div class="row row-cols-lg-auto g-3 align-items-center">
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" value="" id="yearlyOnSpecifixDay">
+              <input class="form-check-input" type="checkbox" value="" id="yearlyFirstChoice">
               <label class="form-check-label">on</label>
             </div>
             <div class="col-auto">
               <select class="form-select" id="monthFirstOption">
               </select>
             </div>
-            <datalist id="listOfMonthDates"></datalist>
             <div class="mb-3">
               <label class="form-label"></label>
-              <input type="number" class="form-control" list="listOfMonthDates">
+              <input type="number" class="form-control" id="dateOfTheMonth" list="listOfMonthDates">
             </div>
           </div>
           <!-- second option -->
           <div class="row row-cols-lg-auto g-3 align-items-center mb-3">
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" value="" id="yearlyOnDate">
+              <input class="form-check-input" type="checkbox" value="" id="yearlySecondChoice">
               <label class="form-check-label">on the </label>
             </div>
             <div class="col-auto">
-              <select class="form-select" id="needToChange">
+              <select class="form-select" id="weekCountForYearly">
                 <option value="1">First</option>
-                <option value="1">Second</option>
-                <option value="2">Third</option>
-                <option value="3">Fourth</option>
-                <option value="4">Last</option>
+                <option value="2">Second</option>
+                <option value="3">Third</option>
+                <option value="4">Fourth</option>
+                <option value="-1">Last</option>
               </select>
             </div>
             <div class="col-auto">
-              <select class="form-select" id="needToChange">
-                <option value="1">Monday</option>
+              <select class="form-select" id="weekdayYearly">
+                <option value="0">Monday</option>
                 <option value="1">Thuesday</option>
                 <option value="2">Wednesday</option>
                 <option value="3">Thursday</option>
                 <option value="4">Friday</option>
-                <option value="3">Sunday</option>
-                <option value="3">Saturday</option>
+                <option value="5">Sunday</option>
+                <option value="6">Saturday</option>
               </select>
             </div>
             <label class="form-check-label">of</label>
