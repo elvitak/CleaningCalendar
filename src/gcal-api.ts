@@ -72,17 +72,15 @@ export async function listEventsFromGoogleCalendar(id: string): Promise<gapi.cli
 }
 
 export async function insertEventToGoogleCalendar(
-  calendarId: string, title: string, rrule: string, notes: string
+  calendarId: string, title: string, rrule: string, notes: string, startDate: string
 ): Promise<gapi.client.calendar.Event> {
 
-  // TODO: Get from the user input.
-  const date = new Date().toISOString().substring(0, 10);
   const cleaningEvent: gapi.client.calendar.Event = {
     summary: title,
     description: notes,
-    start: { date: date },
-    end: { date: date },
-    recurrence: [rrule]
+    start: { date: startDate },
+    end: { date: startDate },
+    recurrence: [rrule],
   }
 
   return gapi.client.calendar.events.insert({
@@ -98,13 +96,14 @@ export async function deleteEventFromGoogleCalendar(calendarId: string, eventId:
   });
 }
 
-export async function updateEventInGoogleCalendar(calendarId: string, eventId: string, title: string, rrule: string, notes: string): Promise<gapi.client.calendar.Event> {
-  const date = new Date().toISOString().substring(0, 10);
+export async function updateEventInGoogleCalendar(
+  calendarId: string, eventId: string, title: string, rrule: string, notes: string, startDate: string
+): Promise<gapi.client.calendar.Event> {
   const cleaningEvent: gapi.client.calendar.Event = {
     summary: title,
     description: notes,
-    start: { date: date },
-    end: { date: date },
+    start: { date: startDate },
+    end: { date: startDate },
     recurrence: [rrule],
   }
 
