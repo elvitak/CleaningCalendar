@@ -34,7 +34,7 @@ function drawEventList() {
   }
 }
 
-function readWeeklyRrule() {
+function readWeeklyRrule(): string {
   const interval = (document.getElementById("interval") as HTMLInputElement).valueAsNumber;
 
   const fieldsWeekday = document.getElementsByName("weekday") as NodeListOf<HTMLInputElement>;
@@ -235,7 +235,58 @@ function deleteEvent(event: gapi.client.calendar.Event) {
 
 function editEvent(event: gapi.client.calendar.Event) {
   (document.getElementById("title") as HTMLInputElement).value = event.summary || "";
-  (document.getElementById("frequency") as HTMLInputElement).value = event.recurrence?.[0] || "";
   (document.getElementById("notes") as HTMLTextAreaElement).value = event.description || "";
   (document.getElementById("eventId") as HTMLInputElement).value = event.id || "";
+
+  const rrule = RRule.fromString(event.recurrence![0]);
+  const frequency = Frequency[rrule.options.freq!];
+  (document.getElementById("frequency") as HTMLSelectElement).value = frequency;
+  (document.getElementById("interval") as HTMLInputElement).valueAsNumber = rrule.options.interval;
+
+  // (document.getElementById("frequency") as HTMLSelectElement).dispatchEvent(new Event('change'));
+  handleFrequencyChange.apply(document.getElementById("frequency") as HTMLSelectElement);
+
+  if (frequency === "WEEKLY") {
+    fillInWeeklyRule(rrule);
+  }
+  if (frequency === "MONTHLY") {
+    filInMonthlyRule(rrule);
+  }
+  if (frequency === "YEARLY") {
+    fillInYearlyRule(rrule);
+  }
+}
+
+function fillInWeeklyRule(rrule: RRule) {
+  const elementsWeekday = document.getElementsByName("weekday") as NodeListOf<HTMLInputElement>;
+  for (let i = 0; i < elementsWeekday.length; i++) {
+    elementsWeekday[i].checked = rrule.options.byweekday.includes(i);
+  }
+}
+
+function filInMonthlyRule(rrule: RRule) {
+  if (rrule.options.bymonthday.length > 0) {
+    (document.getElementById("montlyFirstChoice") as HTMLInputElement).checked = true;
+    (document.getElementById("onSpecificDay") as HTMLInputElement).valueAsNumber = rrule.options.bymonthday[0];
+  }
+  if (rrule.options.byweekday.length > 0) {
+    (document.getElementById("monthlySecondChoice") as HTMLInputElement).checked = true;
+    (document.getElementById("weekCountForMonthly") as HTMLSelectElement).value = rrule.options.bysetpos[0].toString();
+    (document.getElementById("weekdayMonthly") as HTMLSelectElement).value = rrule.options.byweekday[0].toString();
+  }
+}
+
+function fillInYearlyRule(rrule: RRule) {
+  if (rrule.options.bymonth.length > 0) {
+    (document.getElementById("yearlyFirstChoice") as HTMLInputElement).checked = true;
+    (document.getElementById("dateOfTheMonth") as HTMLInputElement).valueAsNumber = rrule.options.bymonthday[0];
+    (document.getElementById("monthFirstOption") as HTMLSelectElement).value = rrule.options.bymonth[0].toString();
+
+  }
+  if (rrule.options.byweekday.length > 0) {
+    (document.getElementById("yearlySecondChoice") as HTMLInputElement).checked = true;
+    (document.getElementById("weekCountForYearly") as HTMLSelectElement).value = rrule.options.bysetpos[0].toString();
+    (document.getElementById("weekdayYearly") as HTMLSelectElement).value = rrule.options.byweekday[0].toString();
+    (document.getElementById("monthSecondOption") as HTMLSelectElement).value = rrule.options.bymonth[0].toString();
+  }
 }
