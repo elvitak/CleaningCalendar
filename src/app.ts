@@ -34,7 +34,7 @@ function drawEventList() {
   }
 }
 
-function readWeeklyRrule(): string {
+function readWeeklyRrule(): RRule {
   const interval = (document.getElementById("interval") as HTMLInputElement).valueAsNumber;
 
   const fieldsWeekday = document.getElementsByName("weekday") as NodeListOf<HTMLInputElement>;
@@ -44,17 +44,15 @@ function readWeeklyRrule(): string {
       weekdays.push(parseInt(fieldsWeekday[i].value));
     }
   }
-  // const today = new Date();
   const rrule = new RRule({
     freq: RRule.WEEKLY,
     interval: interval,
     byweekday: weekdays
-    // until: new Date(today.getFullYear() + 3, today.getMonth(), today.getDate())
   });
-  return rrule.toString();
+  return rrule;
 }
 
-function readMonthlyRule(): string {
+function readMonthlyRule(): RRule {
   const interval = (document.getElementById("interval") as HTMLInputElement).valueAsNumber;
   const onSpecificDay = (document.getElementById("onSpecificDay") as HTMLInputElement).valueAsNumber;
   const montlyFirstChoice = document.getElementById("montlyFirstChoice") as HTMLInputElement;
@@ -62,28 +60,26 @@ function readMonthlyRule(): string {
   const weekCount = parseInt((document.getElementById("weekCountForMonthly") as HTMLSelectElement).value);
   const byweekday = parseInt((document.getElementById("weekdayMonthly") as HTMLSelectElement).value);
 
-  //const today = new Date();
   if (montlyFirstChoice.checked) {
     const rrule = new RRule({
       freq: RRule.MONTHLY,
       interval: interval,
       bymonthday: onSpecificDay
-      //until: new Date(today.getFullYear() + 3, today.getMonth(), today.getDate())
     });
-    return rrule.toString();
-  }
-  if (monthlySecondChoice.checked) {
+    return rrule;
+  } else {
+    //if (monthlySecondChoice.checked) {
     const rrule = new RRule({
       freq: RRule.MONTHLY,
       interval: interval,
       bysetpos: weekCount,
       byweekday: byweekday
     });
-    return rrule.toString();
+    return rrule;
   }
 }
 
-function readYearlyRule(): string {
+function readYearlyRule(): RRule {
   const yearlyFirstChoice = document.getElementById("yearlyFirstChoice") as HTMLInputElement;
   const yearlySecondChoice = document.getElementById("yearlySecondChoice") as HTMLInputElement;
   const interval = (document.getElementById("interval") as HTMLInputElement).valueAsNumber;
@@ -96,21 +92,23 @@ function readYearlyRule(): string {
   if (yearlyFirstChoice.checked) {
     const rrule = new RRule({
       freq: RRule.YEARLY,
+      dtstart: startDate,
       interval: interval,
       bymonth: bymonthFirstOption,
       bymonthday: dateOfTheMonth
     });
-    return rrule.toString();
-  }
-  if (yearlySecondChoice.checked) {
+    return rrule;
+  } else {
+    //if (yearlySecondChoice.checked) {
     const rrule = new RRule({
       freq: RRule.YEARLY,
+      dtstart: startDate,
       interval: interval,
       bysetpos: weekCount,
       byweekday: byweekday,
       bymonth: bymonthSecondOption
     });
-    return rrule.toString();
+    return rrule;
   }
 }
 
@@ -119,22 +117,27 @@ function handleCleaningEventSave(event: Event) {
   const eventId = (document.getElementById("eventId") as HTMLInputElement).value;
   const title = (document.getElementById("title") as HTMLInputElement).value;
   const frequency = (document.getElementById("frequency") as HTMLSelectElement).value;
-  let rruleString: string = "";
+  let rrule: RRule;
   if (frequency === "WEEKLY") {
-    rruleString = readWeeklyRrule();
+    rrule = readWeeklyRrule();
   } else if (frequency === "MONTHLY") {
-    rruleString = readMonthlyRule();
+    rrule = readMonthlyRule();
   } else {
-    rruleString = readYearlyRule();
+    rrule = readYearlyRule();
   }
 
   const notes = (document.getElementById("notes") as HTMLTextAreaElement).value;
+
+  const afterDate = new Date();
+  afterDate.setDate(afterDate.getDate() - 1);
+  const startDate = rrule.after(afterDate).toISOString().substring(0, 10);
+
   if (eventId !== "") {
-    updateEventInGoogleCalendar(currentCalendar!.id, eventId, title, rruleString, notes)
+    updateEventInGoogleCalendar(currentCalendar!.id, eventId, title, rrule.toString(), notes, startDate)
       .then(updatedEvent => currentCalendar!.editEvent(updatedEvent))
       .then(() => drawEventList());
   } else {
-    insertEventToGoogleCalendar(currentCalendar!.id, title, rruleString, notes)
+    insertEventToGoogleCalendar(currentCalendar!.id, title, rrule.toString(), notes, startDate)
       .then(insertedEvent => currentCalendar!.addEvent(insertedEvent))
       .then(() => drawEventList());
   }
