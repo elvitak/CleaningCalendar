@@ -237,6 +237,7 @@ function deleteEvent(event: gapi.client.calendar.Event) {
 }
 
 function editEvent(event: gapi.client.calendar.Event) {
+  (document.getElementById("cleaningEventForm") as HTMLFormElement).scrollIntoView();
   (document.getElementById("title") as HTMLInputElement).value = event.summary || "";
   (document.getElementById("notes") as HTMLTextAreaElement).value = event.description || "";
   (document.getElementById("eventId") as HTMLInputElement).value = event.id || "";
