@@ -58,9 +58,12 @@ export async function findOrCreateCalendar(): Promise<string> {
 }
 
 export async function listEventsFromGoogleCalendar(id: string): Promise<gapi.client.calendar.Event[]> {
+  const timeMin = new Date();
+  timeMin.setDate(timeMin.getDate() - 1);
+
   return gapi.client.calendar.events.list({
     calendarId: id,
-    timeMin: (new Date()).toISOString(),
+    timeMin: timeMin.toISOString(),
     maxResults: 100,
     fields: "items(id, summary, description, start, end, recurrence)"
   }).then(response => {
