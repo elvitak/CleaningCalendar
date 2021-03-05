@@ -94,8 +94,8 @@
           <!-- first option -->
           <div class="row row-cols-lg-auto g-3 align-items-center">
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="montlyFirstChoice" value="">
-              <label class="form-check-label">on day</label>
+              <input class="form-check-input" type="radio" name="flexRadioDefault" id="montlyFirstChoice" value="">
+              <label class="form-check-label" for="montlyFirstChoice">on day</label>
             </div>
             <div class="mb-3">
               <input type="number" id="onSpecificDay" class="form-control" list="listOfMonthDates" placeholder="3">
@@ -104,8 +104,8 @@
           <!-- second option -->
           <div class="row row-cols-lg-auto g-3 align-items-center mb-3">
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" value="" id="monthlySecondChoice">
-              <label class="form-check-label">on the </label>
+              <input class="form-check-input" type="radio" name="flexRadioDefault" value="" id="monthlySecondChoice">
+              <label class="form-check-label" for="monthlySecondChoice">on the </label>
             </div>
             <div class="col-auto">
               <select class="form-select" id="weekCountForMonthly">
@@ -134,8 +134,8 @@
           <!-- first option -->
           <div class="row row-cols-lg-auto g-3 align-items-center">
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" value="" id="yearlyFirstChoice">
-              <label class="form-check-label">on</label>
+              <input class="form-check-input" type="radio" name="flexRadioDefault" value="" id="yearlyFirstChoice">
+              <label class="form-check-label" for="yearlyFirstChoice">on</label>
             </div>
             <div class="col-auto">
               <select class="form-select" id="monthFirstOption">
@@ -149,10 +149,10 @@
           <!-- second option -->
           <div class="row row-cols-lg-auto g-3 align-items-center mb-3">
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" value="" id="yearlySecondChoice">
-              <label class="form-check-label">on the </label>
+              <input class="form-check-input" type="radio" name="flexRadioDefault" value="" id="yearlySecondChoice">
+              <label class="form-check-label" for="yearlySecondChoice"> on the </label>
             </div>
-            <div class="col-auto">
+            <div class=" col-auto">
               <select class="form-select" id="weekCountForYearly">
                 <option value="1">First</option>
                 <option value="2">Second</option>
