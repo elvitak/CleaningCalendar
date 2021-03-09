@@ -2,17 +2,16 @@ import { CleaningCalendar } from "./cleaningCalendar";
 import { deleteEventFromGoogleCalendar, findOrCreateCalendar, handleSignin, handleSignout, insertEventToGoogleCalendar, listEventsFromGoogleCalendar, loadGapi, updateEventInGoogleCalendar } from "./gcal-api";
 import { RRule, RRuleSet, rrulestr, Weekday, Frequency } from 'rrule'
 import { jobs } from "googleapis/build/src/apis/jobs";
+import { getAllJSDocTagsOfKind } from "typescript";
+import { UI } from "./ui";
 
 /// <reference types="gapi.client.calendar" />
 
 let currentCalendar: CleaningCalendar | undefined = undefined;
+const ui: UI = new UI();
 
 function drawEventList() {
-  const ulEvents = document.getElementById("eventList")!;
-
-  while (ulEvents.firstChild) {
-    ulEvents.removeChild(ulEvents.firstChild);
-  }
+  ui.clearEventList();
 
   // To avoid multiple copies of `get events`, create const with result.
   const currentEvents = currentCalendar!.events;
@@ -30,18 +29,16 @@ function drawEventList() {
       )</span>`;
     listItem.querySelector("button[name='editBtn']")?.addEventListener("click", () => editEvent(iEvent));
     listItem.querySelector("button[name='deleteBtn']")?.addEventListener("click", () => deleteEvent(iEvent));
-    ulEvents.appendChild(listItem);
+    ui.eventList.appendChild(listItem);
   }
 }
 
 function readWeeklyRrule(): RRule {
-  const interval = (document.getElementById("interval") as HTMLInputElement).valueAsNumber;
-
-  const fieldsWeekday = document.getElementsByName("weekday") as NodeListOf<HTMLInputElement>;
+  const interval = ui.interval.valueAsNumber;
   const weekdays = [];
-  for (let i = 0; i < fieldsWeekday.length; i++) {
-    if (fieldsWeekday[i].checked) {
-      weekdays.push(parseInt(fieldsWeekday[i].value));
+  for (let i = 0; i < ui.workdays.length; i++) {
+    if (ui.workdays[i].checked) {
+      weekdays.push(parseInt(ui.workdays[i].value));
     }
   }
   const rrule = new RRule({
@@ -53,12 +50,11 @@ function readWeeklyRrule(): RRule {
 }
 
 function readMonthlyRule(): RRule {
-  const interval = (document.getElementById("interval") as HTMLInputElement).valueAsNumber;
-  const onSpecificDay = (document.getElementById("onSpecificDay") as HTMLInputElement).valueAsNumber;
-  const montlyFirstChoice = document.getElementById("montlyFirstChoice") as HTMLInputElement;
-  const monthlySecondChoice = document.getElementById("monthlySecondChoice") as HTMLInputElement;
-  const weekCount = parseInt((document.getElementById("weekCountForMonthly") as HTMLSelectElement).value);
-  const byweekday = parseInt((document.getElementById("weekdayMonthly") as HTMLSelectElement).value);
+  const interval = ui.interval.valueAsNumber;
+  const onSpecificDay = ui.onSpecificDay.valueAsNumber;
+  const montlyFirstChoice = ui.montlyFirstChoice;
+  const weekCount = parseInt(ui.weekCountForMonthly.value);
+  const byweekday = parseInt(ui.weekdayMonthly.value);
 
   if (montlyFirstChoice.checked) {
     const rrule = new RRule({
@@ -80,19 +76,16 @@ function readMonthlyRule(): RRule {
 }
 
 function readYearlyRule(): RRule {
-  const yearlyFirstChoice = document.getElementById("yearlyFirstChoice") as HTMLInputElement;
-  const yearlySecondChoice = document.getElementById("yearlySecondChoice") as HTMLInputElement;
-  const interval = (document.getElementById("interval") as HTMLInputElement).valueAsNumber;
-  const bymonthFirstOption = parseInt((document.getElementById("monthFirstOption") as HTMLSelectElement).value);
-  const dateOfTheMonth = (document.getElementById("dateOfTheMonth") as HTMLInputElement).valueAsNumber;
-  const weekCount = parseInt((document.getElementById("weekCountForYearly") as HTMLSelectElement).value);
-  const byweekday = parseInt((document.getElementById("weekdayYearly") as HTMLSelectElement).value);
-  const bymonthSecondOption = parseInt((document.getElementById("monthSecondOption") as HTMLSelectElement).value);
+  const interval = ui.interval.valueAsNumber;
+  const bymonthFirstOption = parseInt(ui.monthFirstOption.value);
+  const dateOfTheMonth = ui.dateOfTheMonth.valueAsNumber;
+  const weekCount = parseInt(ui.weekCountForYearly.value);
+  const byweekday = parseInt(ui.weekdayYearly.value);
+  const bymonthSecondOption = parseInt(ui.monthSecondOption.value);
 
-  if (yearlyFirstChoice.checked) {
+  if (ui.yearlyFirstChoice.checked) {
     const rrule = new RRule({
       freq: RRule.YEARLY,
-      dtstart: startDate,
       interval: interval,
       bymonth: bymonthFirstOption,
       bymonthday: dateOfTheMonth
@@ -102,7 +95,6 @@ function readYearlyRule(): RRule {
     //if (yearlySecondChoice.checked) {
     const rrule = new RRule({
       freq: RRule.YEARLY,
-      dtstart: startDate,
       interval: interval,
       bysetpos: weekCount,
       byweekday: byweekday,
@@ -112,21 +104,27 @@ function readYearlyRule(): RRule {
   }
 }
 
-function handleCleaningEventSave(event: Event) {
+function handleCleaningEventSave(this: HTMLFormElement, event: Event) {
   event.preventDefault();
-  const eventId = (document.getElementById("eventId") as HTMLInputElement).value;
-  const title = (document.getElementById("title") as HTMLInputElement).value;
-  const frequency = (document.getElementById("frequency") as HTMLSelectElement).value;
+  event.stopPropagation();
+
+  if (!this.checkValidity()) {
+    this.classList.add("was-validated");
+    return;
+  }
+
+  const eventId = ui.eventId.value;
+  const title = ui.title.value;
   let rrule: RRule;
-  if (frequency === "WEEKLY") {
+  if (ui.frequency.value === "WEEKLY") {
     rrule = readWeeklyRrule();
-  } else if (frequency === "MONTHLY") {
+  } else if (ui.frequency.value === "MONTHLY") {
     rrule = readMonthlyRule();
   } else {
     rrule = readYearlyRule();
   }
 
-  const notes = (document.getElementById("notes") as HTMLTextAreaElement).value;
+  const notes = ui.notes.value;
 
   const afterDate = new Date();
   afterDate.setDate(afterDate.getDate() - 1);
@@ -135,31 +133,28 @@ function handleCleaningEventSave(event: Event) {
   if (eventId !== "") {
     updateEventInGoogleCalendar(currentCalendar!.id, eventId, title, rrule.toString(), notes, startDate)
       .then(updatedEvent => currentCalendar!.editEvent(updatedEvent))
-      .then(() => drawEventList());
+      .then(() => drawEventList())
+      .finally(() => {
+        this.classList.remove("was-validated");
+        ui.cleaningEventForm.reset();
+      });
   } else {
     insertEventToGoogleCalendar(currentCalendar!.id, title, rrule.toString(), notes, startDate)
       .then(insertedEvent => currentCalendar!.addEvent(insertedEvent))
-      .then(() => drawEventList());
+      .then(() => drawEventList())
+      .finally(() => {
+        this.classList.remove("was-validated");
+        ui.cleaningEventForm.reset();
+      });
   }
-  (document.getElementById("cleaningEventForm") as HTMLFormElement).reset();
 }
 
-const loadingScreen = document.getElementById("loadingScreen")!;
-const loginScreen = document.getElementById("loginScreen")!;
-const mainScreen = document.getElementById("mainScreen")!;
-const weekly = document.getElementById("weekly")!;
-const monthly = document.getElementById("monthly")!;
-const yearly = document.getElementById("yearly")!;
-const intervalWeek = document.getElementById("intervalWeek")!;
-const intervalMonth = document.getElementById("intervalMonth")!;
-const intervalYear = document.getElementById("intervalYear")!;
-
 function handleIsSignedInChange(isSignedIn: boolean): void {
-  loadingScreen.classList.add("d-none");
+  ui.loadingScreen.classList.add("d-none");
 
   if (isSignedIn) {
-    loginScreen.classList.add("d-none");
-    mainScreen.classList.remove("d-none");
+    ui.loginScreen.classList.add("d-none");
+    ui.mainScreen.classList.remove("d-none");
     findOrCreateCalendar().then(id => {
       currentCalendar = new CleaningCalendar(id);
       return id;
@@ -168,48 +163,58 @@ function handleIsSignedInChange(isSignedIn: boolean): void {
         .then(events => currentCalendar!.events = events);
     }).then(() => drawEventList());
   } else {
-    loginScreen.classList.remove("d-none");
-    mainScreen.classList.add("d-none");
+    ui.loginScreen.classList.remove("d-none");
+    ui.mainScreen.classList.add("d-none");
   }
 }
 
-(document.getElementById("frequency") as HTMLSelectElement)
-  .addEventListener("change", handleFrequencyChange);
+ui.frequency.addEventListener("change", handleFrequencyChange);
 
 function handleFrequencyChange(this: HTMLSelectElement) {
   const frequencyType = this.value;
 
-  intervalWeek.classList.toggle("d-none", frequencyType !== "WEEKLY");
-  intervalMonth.classList.toggle("d-none", frequencyType !== "MONTHLY");
-  intervalYear.classList.toggle("d-none", frequencyType !== "YEARLY");
-  weekly.classList.toggle("d-none", frequencyType !== "WEEKLY");
-  monthly.classList.toggle("d-none", frequencyType !== "MONTHLY");
-  yearly.classList.toggle("d-none", frequencyType !== "YEARLY");
+  ui.intervalWeek.classList.toggle("d-none", frequencyType !== "WEEKLY");
+  ui.intervalMonth.classList.toggle("d-none", frequencyType !== "MONTHLY");
+  ui.intervalYear.classList.toggle("d-none", frequencyType !== "YEARLY");
+  ui.weekly.classList.toggle("d-none", frequencyType !== "WEEKLY");
+  ui.monthly.classList.toggle("d-none", frequencyType !== "MONTHLY");
+  ui.yearly.classList.toggle("d-none", frequencyType !== "YEARLY");
+
+  if (frequencyType === "WEEKLY") {
+    ui.weeklyFrequency.disabled = false;
+    ui.monthlyFrequency.disabled = true;
+    ui.yearlyFrequency.disabled = true;
+  } else if (frequencyType === "MONTHLY") {
+    ui.weeklyFrequency.disabled = true;
+    ui.monthlyFrequency.disabled = false;
+    ui.yearlyFrequency.disabled = true;
+  } else if (frequencyType === "YEARLY") {
+    ui.weeklyFrequency.disabled = true;
+    ui.monthlyFrequency.disabled = true;
+    ui.yearlyFrequency.disabled = false;
+  }
 }
 
 
 function preloadDates() {
-  const datesOfMonth = document.getElementById("listOfMonthDates");
   for (let i = 1; i <= 31; i++) {
     let option = document.createElement("option") as HTMLOptionElement;
     option.value = i.toString();
-    datesOfMonth?.appendChild(option);
+    ui.listOfMonthDates?.appendChild(option);
   }
 }
 
 function preloadMonths() {
   const monthNames = ["January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"];
-  const monthFirstOption = document.getElementById("monthFirstOption")!;
-  const monthSecondOption = document.getElementById("monthSecondOption")!;
 
   for (let i = 0; i < monthNames.length; i++) {
     let option = document.createElement("option") as HTMLOptionElement;
     option.value = (i + 1).toString();
     option.text = monthNames[i];
 
-    monthFirstOption.appendChild(option.cloneNode(true));
-    monthSecondOption.appendChild(option.cloneNode(true));
+    ui.monthFirstOption.appendChild(option.cloneNode(true));
+    ui.monthSecondOption.appendChild(option.cloneNode(true));
   }
 }
 
@@ -222,8 +227,19 @@ document.getElementById("singOutBtn")!
   .addEventListener("click", handleSignout);
 
 //Event Listener for save button
-document.getElementById("cleaningEventForm")!
-  .addEventListener("submit", handleCleaningEventSave);
+ui.cleaningEventForm.addEventListener("submit", handleCleaningEventSave);
+
+//Event Listener for checked/unchecked weekdays
+ui.weekday.forEach(elementWeekday =>
+  elementWeekday.addEventListener("change", atLeastOneDayIsChecked));
+
+//Event Listener for monthly radio choices
+ui.monthlyRadio.forEach(radio =>
+  radio.addEventListener("change", monthlyRadioChoice));
+
+//Event Listener for yearly radio choices
+ui.yearlyRadios.forEach(radio =>
+  radio.addEventListener("change", yearlyRadiosChoice));
 
 preloadDates();
 preloadMonths();
@@ -237,18 +253,18 @@ function deleteEvent(event: gapi.client.calendar.Event) {
 }
 
 function editEvent(event: gapi.client.calendar.Event) {
-  (document.getElementById("cleaningEventForm") as HTMLFormElement).scrollIntoView();
-  (document.getElementById("title") as HTMLInputElement).value = event.summary || "";
-  (document.getElementById("notes") as HTMLTextAreaElement).value = event.description || "";
-  (document.getElementById("eventId") as HTMLInputElement).value = event.id || "";
+  ui.cleaningEventForm.classList.remove("was-validated");
+  ui.cleaningEventForm.scrollIntoView();
+  ui.title.value = event.summary || "";
+  ui.notes.value = event.description || "";
+  ui.eventId.value = event.id || "";
 
   const rrule = RRule.fromString(event.recurrence![0]);
   const frequency = Frequency[rrule.options.freq!];
-  (document.getElementById("frequency") as HTMLSelectElement).value = frequency;
-  (document.getElementById("interval") as HTMLInputElement).valueAsNumber = rrule.options.interval;
+  ui.frequency.value = frequency;
+  ui.interval.valueAsNumber = rrule.options.interval;
 
-  // (document.getElementById("frequency") as HTMLSelectElement).dispatchEvent(new Event('change'));
-  handleFrequencyChange.apply(document.getElementById("frequency") as HTMLSelectElement);
+  handleFrequencyChange.apply(ui.frequency);
 
   if (frequency === "WEEKLY") {
     fillInWeeklyRule(rrule);
@@ -262,7 +278,7 @@ function editEvent(event: gapi.client.calendar.Event) {
 }
 
 function fillInWeeklyRule(rrule: RRule) {
-  const elementsWeekday = document.getElementsByName("weekday") as NodeListOf<HTMLInputElement>;
+  const elementsWeekday = ui.weekday;
   for (let i = 0; i < elementsWeekday.length; i++) {
     elementsWeekday[i].checked = rrule.options.byweekday.includes(i);
   }
@@ -270,27 +286,68 @@ function fillInWeeklyRule(rrule: RRule) {
 
 function filInMonthlyRule(rrule: RRule) {
   if (rrule.options.bymonthday.length > 0) {
-    (document.getElementById("montlyFirstChoice") as HTMLInputElement).checked = true;
-    (document.getElementById("onSpecificDay") as HTMLInputElement).valueAsNumber = rrule.options.bymonthday[0];
+    ui.montlyFirstChoice.checked = true;
+    ui.onSpecificDay.valueAsNumber = rrule.options.bymonthday[0];
   }
   if (rrule.options.byweekday.length > 0) {
-    (document.getElementById("monthlySecondChoice") as HTMLInputElement).checked = true;
-    (document.getElementById("weekCountForMonthly") as HTMLSelectElement).value = rrule.options.bysetpos[0].toString();
-    (document.getElementById("weekdayMonthly") as HTMLSelectElement).value = rrule.options.byweekday[0].toString();
+    ui.monthlySecondChoice.checked = true;
+    ui.weekCountForMonthly.value = rrule.options.bysetpos[0].toString();
+    ui.weekdayMonthly.value = rrule.options.byweekday[0].toString();
   }
 }
 
 function fillInYearlyRule(rrule: RRule) {
   if (rrule.options.bymonth.length > 0) {
-    (document.getElementById("yearlyFirstChoice") as HTMLInputElement).checked = true;
-    (document.getElementById("dateOfTheMonth") as HTMLInputElement).valueAsNumber = rrule.options.bymonthday[0];
-    (document.getElementById("monthFirstOption") as HTMLSelectElement).value = rrule.options.bymonth[0].toString();
+    ui.yearlyFirstChoice.checked = true;
+    ui.dateOfTheMonth.valueAsNumber = rrule.options.bymonthday[0];
+    ui.monthFirstOption.value = rrule.options.bymonth[0].toString();
 
   }
   if (rrule.options.byweekday.length > 0) {
-    (document.getElementById("yearlySecondChoice") as HTMLInputElement).checked = true;
-    (document.getElementById("weekCountForYearly") as HTMLSelectElement).value = rrule.options.bysetpos[0].toString();
-    (document.getElementById("weekdayYearly") as HTMLSelectElement).value = rrule.options.byweekday[0].toString();
-    (document.getElementById("monthSecondOption") as HTMLSelectElement).value = rrule.options.bymonth[0].toString();
+    ui.yearlySecondChoice.checked = true;
+    ui.weekCountForYearly.value = rrule.options.bysetpos[0].toString();
+    ui.weekdayYearly.value = rrule.options.byweekday[0].toString();
+    ui.monthSecondOption.value = rrule.options.bymonth[0].toString();
+  }
+}
+
+function atLeastOneDayIsChecked() {
+  const elementsWeekday = ui.weekday;
+  let isChecked = false;
+  for (let i = 0; i < elementsWeekday.length; i++) {
+    if (elementsWeekday[i].checked) {
+      isChecked = true;
+    }
+  }
+  for (let j = 0; j < elementsWeekday.length; j++) {
+    elementsWeekday[j].required = !isChecked;
+  }
+}
+
+function monthlyRadioChoice(this: HTMLInputElement) {
+  if (this.id === "montlyFirstChoice") {
+    ui.onSpecificDay.required = true;
+    ui.weekCountForMonthly.required = false;
+    ui.weekdayMonthly.required = false;
+  } else { // this.id === "montlySecondChoice"
+    ui.onSpecificDay.required = false;
+    ui.weekCountForMonthly.required = true;
+    ui.weekdayMonthly.required = true;
+  }
+}
+
+function yearlyRadiosChoice(this: HTMLInputElement) {
+  if (this.id === "yearlyFirstChoice") {
+    ui.monthFirstOption.required = true;
+    ui.dateOfTheMonth.required = true;
+    ui.weekCountForYearly.required = false;
+    ui.weekdayYearly.required = false;
+    ui.monthSecondOption.required = false;
+  } else {
+    ui.monthFirstOption.required = false;
+    ui.dateOfTheMonth.required = false;
+    ui.weekCountForYearly.required = true;
+    ui.weekdayYearly.required = true;
+    ui.monthSecondOption.required = true;
   }
 }
