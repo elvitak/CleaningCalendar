@@ -28,15 +28,18 @@
         <button id="singOutBtn" class="btn btn-outline-primary">Sign Out</button>
       </div>
 
-      <form id="cleaningEventForm">
+      <form id="cleaningEventForm" novalidate>
         <input type="hidden" id="eventId">
 
         <div class="mb-3">
           <label for="title" class="form-label">Title</label>
-          <input type="text" class="form-control" id="title">
+          <input type="text" class="form-control" id="title" required>
+          <div class="invalid-feedback">
+            Please enter title.
+          </div>
         </div>
         <div class="row row-cols-lg-auto g-3 align-items-center mb-3">
-          <label class="col-sm-1 col-form-label">Repeat</label>
+          <label class="col-sm-1 col-form-label" for="frequency">Repeat</label>
           <div class="col-auto">
             <select class="form-select" id="frequency">
               <option value="WEEKLY">Weekly</option>
@@ -44,10 +47,13 @@
               <option value="YEARLY">Yearly</option>
             </select>
           </div>
-          <label class="col-sm-1 col-form-label">every</label>
+          <label class="col-sm-1 col-form-label" for="interval">every</label>
           <div class="col-auto">
             <div class="input-group">
-              <input type="number" class="form-control" id="interval">
+              <input type="number" class="form-control" id="interval" required min="1">
+              <div class="invalid-feedback">
+                Please enter positive frequency value.
+              </div>
             </div>
           </div>
           <label class="col-sm-2 col-form-label">
@@ -57,128 +63,163 @@
           </label>
         </div>
         <!-- For Weekly-->
-        <div id="weekly">
-          <div class="mb-3 form-check">
-            <div class="form-check form-check-inline">
-              <input class="form-check-input" type="checkbox" name="weekday" value="0">
-              <label class="form-check-label">Mon</label>
-            </div>
-            <div class="form-check form-check-inline">
-              <input class="form-check-input" type="checkbox" name="weekday" value="1">
-              <label class="form-check-label">Thu</label>
-            </div>
-            <div class="form-check form-check-inline">
-              <input class="form-check-input" type="checkbox" name="weekday" value="2">
-              <label class="form-check-label">Wed</label>
-            </div>
-            <div class="form-check form-check-inline">
-              <input class="form-check-input" type="checkbox" name="weekday" value="3">
-              <label class="form-check-label">Thu</label>
-            </div>
-            <div class="form-check form-check-inline">
-              <input class="form-check-input" type="checkbox" name="weekday" value="4">
-              <label class="form-check-label">Fri</label>
-            </div>
-            <div class="form-check form-check-inline">
-              <input class="form-check-input" type="checkbox" name="weekday" value="5">
-              <label class="form-check-label">Sun</label>
-            </div>
-            <div class="form-check form-check-inline">
-              <input class="form-check-input" type="checkbox" name="weekday" value="6">
-              <label class="form-check-label">Sat</label>
+        <fieldset id="weeklyFrequency">
+          <div id="weekly">
+            <div class="mb-3 form-check">
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="weekday" value="0" required>
+                <label class="form-check-label">Mon</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="weekday" value="1" required>
+                <label class="form-check-label">Thu</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="weekday" value="2" required>
+                <label class="form-check-label">Wed</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="weekday" value="3" required>
+                <label class="form-check-label">Thu</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="weekday" value="4" required>
+                <label class="form-check-label">Fri</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="weekday" value="5" required>
+                <label class="form-check-label">Sun</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="weekday" value="6" required>
+                <label class="form-check-label">Sat</label>
+                <div class="invalid-feedback">
+                  Please choose at least one.
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        </fieldset>
         <!-- For Montly-->
-        <div id="monthly" class="d-none">
-          <!-- first option -->
-          <div class="row row-cols-lg-auto g-3 align-items-center">
-            <div class="form-check">
-              <input class="form-check-input" type="radio" name="flexRadioDefault" id="montlyFirstChoice" value="">
-              <label class="form-check-label" for="montlyFirstChoice">on day</label>
+        <fieldset id="monthlyFrequency" disabled>
+          <div id="monthly" class="d-none">
+            <!-- first option -->
+            <div class="row row-cols-lg-auto g-3 align-items-center">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="monthlyRadio" id="montlyFirstChoice" required>
+                <label class="form-check-label" for="montlyFirstChoice">on day</label>
+              </div>
+              <div class="mb-3">
+                <input type="number" id="onSpecificDay" class="form-control" list="listOfMonthDates" placeholder="3"
+                  required>
+                <div class="invalid-feedback">
+                  Please choose one.
+                </div>
+              </div>
             </div>
-            <div class="mb-3">
-              <input type="number" id="onSpecificDay" class="form-control" list="listOfMonthDates" placeholder="3">
+            <!-- second option -->
+            <div class="row row-cols-lg-auto g-3 align-items-center mb-3">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="monthlyRadio" id="monthlySecondChoice" required>
+                <label class="form-check-label" for="monthlySecondChoice">on the </label>
+              </div>
+              <div class="col-auto">
+                <select class="form-select" id="weekCountForMonthly">
+                  <option value="1">First</option>
+                  <option value="2">Second</option>
+                  <option value="3">Third</option>
+                  <option value="4">Fourth</option>
+                  <option value="-1">Last</option>
+                </select>
+                <div class="invalid-feedback">
+                  Please choose one.
+                </div>
+              </div>
+              <div class="col-auto">
+                <select class="form-select" id="weekdayMonthly" required>
+                  <option value="0">Monday</option>
+                  <option value="1">Thuesday</option>
+                  <option value="2">Wednesday</option>
+                  <option value="3">Thursday</option>
+                  <option value="4">Friday</option>
+                  <option value="5">Sunday</option>
+                  <option value="6">Saturday</option>
+                </select>
+                <div class="invalid-feedback">
+                  Please choose one.
+                </div>
+              </div>
             </div>
           </div>
-          <!-- second option -->
-          <div class="row row-cols-lg-auto g-3 align-items-center mb-3">
-            <div class="form-check">
-              <input class="form-check-input" type="radio" name="flexRadioDefault" value="" id="monthlySecondChoice">
-              <label class="form-check-label" for="monthlySecondChoice">on the </label>
-            </div>
-            <div class="col-auto">
-              <select class="form-select" id="weekCountForMonthly">
-                <option value="1">First</option>
-                <option value="2">Second</option>
-                <option value="3">Third</option>
-                <option value="4">Fourth</option>
-                <option value="-1">Last</option>
-              </select>
-            </div>
-            <div class="col-auto">
-              <select class="form-select" id="weekdayMonthly">
-                <option value="0" selected>Monday</option>
-                <option value="1">Thuesday</option>
-                <option value="2">Wednesday</option>
-                <option value="3">Thursday</option>
-                <option value="4">Friday</option>
-                <option value="5">Sunday</option>
-                <option value="6">Saturday</option>
-              </select>
-            </div>
-          </div>
-        </div>
+        </fieldset>
         <!-- For Yearly-->
-        <div id="yearly" class="d-none">
-          <!-- first option -->
-          <div class="row row-cols-lg-auto g-3 align-items-center">
-            <div class="form-check">
-              <input class="form-check-input" type="radio" name="flexRadioDefault" value="" id="yearlyFirstChoice">
-              <label class="form-check-label" for="yearlyFirstChoice">on</label>
+        <fieldset id="yearlyFrequency" disabled>
+          <div id="yearly" class="d-none">
+            <!-- first option -->
+            <div class="row row-cols-lg-auto g-3 align-items-center">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="yearlyRadios" value="" id="yearlyFirstChoice"
+                  required>
+                <label class="form-check-label" for="yearlyFirstChoice">on</label>
+              </div>
+              <div class="col-auto">
+                <select class="form-select" id="monthFirstOption">
+                </select>
+                <div class="invalid-feedback">
+                  Please choose one.
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label"></label>
+                <input type="number" class="form-control" id="dateOfTheMonth" list="listOfMonthDates" required>
+                <div class="invalid-feedback">
+                  Please choose one.
+                </div>
+              </div>
             </div>
-            <div class="col-auto">
-              <select class="form-select" id="monthFirstOption">
-              </select>
-            </div>
-            <div class="mb-3">
-              <label class="form-label"></label>
-              <input type="number" class="form-control" id="dateOfTheMonth" list="listOfMonthDates">
+            <!-- second option -->
+            <div class="row row-cols-lg-auto g-3 align-items-center mb-3">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="yearlyRadios" id="yearlySecondChoice" required>
+                <label class="form-check-label" for="yearlySecondChoice"> on the </label>
+              </div>
+              <div class=" col-auto">
+                <select class="form-select" id="weekCountForYearly" required>
+                  <option value="1">First</option>
+                  <option value="2">Second</option>
+                  <option value="3">Third</option>
+                  <option value="4">Fourth</option>
+                  <option value="-1">Last</option>
+                </select>
+                <div class="invalid-feedback">
+                  Please choose one.
+                </div>
+              </div>
+              <div class="col-auto">
+                <select class="form-select" id="weekdayYearly" required>
+                  <option value="0">Monday</option>
+                  <option value="1">Thuesday</option>
+                  <option value="2">Wednesday</option>
+                  <option value="3">Thursday</option>
+                  <option value="4">Friday</option>
+                  <option value="5">Sunday</option>
+                  <option value="6">Saturday</option>
+                </select>
+                <div class="invalid-feedback">
+                  Please choose one.
+                </div>
+              </div>
+              <label class="form-check-label">of</label>
+              <div class="col-auto">
+                <select class="form-select" id="monthSecondOption" required>
+                </select>
+                <div class="invalid-feedback">
+                  Please choose one.
+                </div>
+              </div>
             </div>
           </div>
-          <!-- second option -->
-          <div class="row row-cols-lg-auto g-3 align-items-center mb-3">
-            <div class="form-check">
-              <input class="form-check-input" type="radio" name="flexRadioDefault" value="" id="yearlySecondChoice">
-              <label class="form-check-label" for="yearlySecondChoice"> on the </label>
-            </div>
-            <div class=" col-auto">
-              <select class="form-select" id="weekCountForYearly">
-                <option value="1">First</option>
-                <option value="2">Second</option>
-                <option value="3">Third</option>
-                <option value="4">Fourth</option>
-                <option value="-1">Last</option>
-              </select>
-            </div>
-            <div class="col-auto">
-              <select class="form-select" id="weekdayYearly">
-                <option value="0">Monday</option>
-                <option value="1">Thuesday</option>
-                <option value="2">Wednesday</option>
-                <option value="3">Thursday</option>
-                <option value="4">Friday</option>
-                <option value="5">Sunday</option>
-                <option value="6">Saturday</option>
-              </select>
-            </div>
-            <label class="form-check-label">of</label>
-            <div class="col-auto">
-              <select class="form-select" id="monthSecondOption">
-              </select>
-            </div>
-          </div>
-        </div>
+        </fieldset>
         <!-- Notes -->
         <div class="mb-3 form-floating">
           <textarea class="form-control" placeholder="Leave notes here" id="notes"></textarea>
@@ -192,7 +233,6 @@
       <ul id="eventList" class="list-group list-group-flush"></ul>
     </div>
   </div>
-
 
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.6.0/dist/umd/popper.min.js"
     integrity="sha384-KsvD1yqQ1/1+IA7gi3P0tyJcT3vR+NdBTt13hSJ2lnve8agRGXTTyNaBYmCR/Nwi"
