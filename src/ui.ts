@@ -35,6 +35,8 @@ export class UI {
   weeklyFrequency: HTMLFieldSetElement = document.getElementById("weeklyFrequency") as HTMLFieldSetElement;
   monthlyFrequency: HTMLFieldSetElement = document.getElementById("monthlyFrequency") as HTMLFieldSetElement;
   yearlyFrequency: HTMLFieldSetElement = document.getElementById("yearlyFrequency") as HTMLFieldSetElement;
+  alertSaved: HTMLDivElement = document.getElementById("alertSaved") as HTMLDivElement;
+  alertRemoved: HTMLDivElement = document.getElementById("alertRemoved") as HTMLDivElement;
 
   clearEventList() {
     while (this.eventList.firstChild) {

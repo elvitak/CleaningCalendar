@@ -137,6 +137,9 @@ function handleCleaningEventSave(this: HTMLFormElement, event: Event) {
       .finally(() => {
         this.classList.remove("was-validated");
         ui.cleaningEventForm.reset();
+        ui.alertSaved.classList.remove("visually-hidden");
+        ui.alertSaved.scrollIntoView();
+        setTimeout(() => ui.alertSaved.classList.add("visually-hidden"), 3000);
       });
   } else {
     insertEventToGoogleCalendar(currentCalendar!.id, title, rrule.toString(), notes, startDate)
@@ -145,6 +148,9 @@ function handleCleaningEventSave(this: HTMLFormElement, event: Event) {
       .finally(() => {
         this.classList.remove("was-validated");
         ui.cleaningEventForm.reset();
+        ui.alertSaved.classList.remove("visually-hidden");
+        ui.alertSaved.scrollIntoView();
+        setTimeout(() => ui.alertSaved.classList.add("visually-hidden"), 3000);
       });
   }
 }
@@ -248,7 +254,12 @@ function deleteEvent(event: gapi.client.calendar.Event) {
   if (window.confirm(`Do you really want to delete ${event.summary}`)) {
     deleteEventFromGoogleCalendar(currentCalendar!.id, event.id!)
       .then(() => currentCalendar!.deleteEvent(event))
-      .then(() => drawEventList());
+      .then(() => drawEventList())
+      .then(() => {
+        ui.alertRemoved.classList.remove("visually-hidden");
+        ui.alertRemoved.scrollIntoView();
+        setTimeout(() => ui.alertRemoved.classList.add("visually-hidden"), 3000);
+      })
   }
 }
 
