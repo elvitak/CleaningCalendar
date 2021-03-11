@@ -1,8 +1,6 @@
 import { CleaningCalendar } from "./cleaningCalendar";
 import { deleteEventFromGoogleCalendar, findOrCreateCalendar, handleSignin, handleSignout, insertEventToGoogleCalendar, listEventsFromGoogleCalendar, loadGapi, updateEventInGoogleCalendar } from "./gcal-api";
 import { RRule, RRuleSet, rrulestr, Weekday, Frequency } from 'rrule'
-import { jobs } from "googleapis/build/src/apis/jobs";
-import { getAllJSDocTagsOfKind } from "typescript";
 import { UI } from "./ui";
 
 /// <reference types="gapi.client.calendar" />
@@ -18,15 +16,25 @@ function drawEventList() {
   for (let i = 0; i < currentEvents.length; i++) {
     const listItem = document.createElement("li");
     const iEvent = currentEvents[i];
-    listItem.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
-    listItem.innerHTML = iEvent.summary || "Unknown";
-    if (currentEvents[i].description !== undefined) {
-      listItem.innerHTML += " Notes:" + iEvent.description;
-    }
-    listItem.innerHTML += ` <span class="badge">(
-      <button type="button" name="editBtn" class="btn btn-default" aria-label="Edit"><i class="fas fa-edit"></i></button>
-      <button type="button" name="deleteBtn" class="btn btn-default" aria-label="Delete"><i class="far fa-trash-alt"></i></button>
-      )</span>`;
+    const rrule = RRule.fromString(iEvent.recurrence![0]);
+    const nextEventDate = rrule.after(new Date()).toDateString();
+    const ruleText = rrule.toText(
+    );
+
+    listItem.classList.add("list-group-item", "list-group-item-action");
+
+    listItem.innerHTML = `
+        <div class="d-flex w-100 justify-content-between">
+          <h5 class="mb-1">${iEvent.summary || "Unknown"}</h5>
+          <small>
+            <button type="button" name="editBtn" class="btn btn-default" aria-label="Edit"><i class="fas fa-edit"></i></button>
+            <button type="button" name="deleteBtn" class="btn btn-default" aria-label="Delete"><i class="far fa-trash-alt"></i></button>
+          </small>
+        </div>
+        <p class="mb-1">${ruleText} <small>(next: ${nextEventDate})</small></p>
+        ${iEvent.description ? `<small>${iEvent.description}</small>` : ""}
+    `;
+
     listItem.querySelector("button[name='editBtn']")?.addEventListener("click", () => editEvent(iEvent));
     listItem.querySelector("button[name='deleteBtn']")?.addEventListener("click", () => deleteEvent(iEvent));
     ui.eventList.appendChild(listItem);
