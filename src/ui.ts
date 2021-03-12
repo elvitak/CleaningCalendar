@@ -1,7 +1,7 @@
 export class UI {
   eventList: HTMLElement = document.getElementById("eventList")!;
   interval: HTMLInputElement = document.getElementById("interval") as HTMLInputElement;
-  workdays: NodeListOf<HTMLInputElement> = document.getElementsByName("weekday") as NodeListOf<HTMLInputElement>;
+  weekday: HTMLInputElement[] = Array.from(document.getElementsByName("weekday") as NodeListOf<HTMLInputElement>);
   onSpecificDay: HTMLInputElement = document.getElementById("onSpecificDay") as HTMLInputElement;
   montlyFirstChoice: HTMLInputElement = document.getElementById("montlyFirstChoice") as HTMLInputElement;
   monthlySecondChoice = document.getElementById("monthlySecondChoice") as HTMLInputElement;
@@ -29,7 +29,6 @@ export class UI {
   intervalYear = document.getElementById("intervalYear")!;
   cleaningEventForm = document.getElementById("cleaningEventForm") as HTMLFormElement;
   listOfMonthDates = document.getElementById("listOfMonthDates");
-  weekday = document.getElementsByName("weekday") as NodeListOf<HTMLInputElement>;
   monthlyRadio = document.getElementsByName("monthlyRadio");
   yearlyRadios = document.getElementsByName("yearlyRadios");
   weeklyFrequency: HTMLFieldSetElement = document.getElementById("weeklyFrequency") as HTMLFieldSetElement;
@@ -42,5 +41,65 @@ export class UI {
     while (this.eventList.firstChild) {
       this.eventList.removeChild(this.eventList.firstChild);
     }
+  }
+
+  resetFormValidations() {
+    // depending on frequency type, different blocks are shown
+    const frequencyType = this.frequency.value;
+    this.intervalWeek.classList.toggle("d-none", frequencyType !== "WEEKLY");
+    this.intervalMonth.classList.toggle("d-none", frequencyType !== "MONTHLY");
+    this.intervalYear.classList.toggle("d-none", frequencyType !== "YEARLY");
+    this.weekly.classList.toggle("d-none", frequencyType !== "WEEKLY");
+    this.monthly.classList.toggle("d-none", frequencyType !== "MONTHLY");
+    this.yearly.classList.toggle("d-none", frequencyType !== "YEARLY");
+
+    this.weeklyFrequency.disabled = (frequencyType !== "WEEKLY");
+    this.monthlyFrequency.disabled = (frequencyType !== "MONTHLY");
+    this.yearlyFrequency.disabled = (frequencyType !== "YEARLY");
+
+    // at least one weekday is checked
+
+    let isChecked = false;
+    for (let i = 0; i < this.weekday.length; i++) {
+      if (this.weekday[i].checked) {
+        isChecked = true;
+      }
+    }
+    for (let j = 0; j < this.weekday.length; j++) {
+      this.weekday[j].required = !isChecked;
+    }
+
+    // Monthly radio choice. Which one is required and which one is not.
+    if (this.montlyFirstChoice.checked) {
+      this.onSpecificDay.required = true;
+      this.weekCountForMonthly.required = false;
+      this.weekdayMonthly.required = false;
+    } else { // montlySecondChoice
+      this.onSpecificDay.required = false;
+      this.weekCountForMonthly.required = true;
+      this.weekdayMonthly.required = true;
+    }
+
+    // yearly radio choice. Which one is required and which one is not.
+
+    if (this.yearlyFirstChoice.checked) {
+      this.monthFirstOption.required = true;
+      this.dateOfTheMonth.required = true;
+      this.weekCountForYearly.required = false;
+      this.weekdayYearly.required = false;
+      this.monthSecondOption.required = false;
+    } else {
+      this.monthFirstOption.required = false;
+      this.dateOfTheMonth.required = false;
+      this.weekCountForYearly.required = true;
+      this.weekdayYearly.required = true;
+      this.monthSecondOption.required = true;
+    }
+  }
+
+  clearForm() {
+    this.cleaningEventForm.classList.remove("was-validated");
+    this.cleaningEventForm.reset();
+    this.resetFormValidations();
   }
 }
