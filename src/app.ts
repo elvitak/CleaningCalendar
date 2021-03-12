@@ -44,9 +44,9 @@ function drawEventList() {
 function readWeeklyRrule(): RRule {
   const interval = ui.interval.valueAsNumber;
   const weekdays = [];
-  for (let i = 0; i < ui.workdays.length; i++) {
-    if (ui.workdays[i].checked) {
-      weekdays.push(parseInt(ui.workdays[i].value));
+  for (let i = 0; i < ui.weekday.length; i++) {
+    if (ui.weekday[i].checked) {
+      weekdays.push(parseInt(ui.weekday[i].value));
     }
   }
   const rrule = new RRule({
@@ -143,8 +143,7 @@ function handleCleaningEventSave(this: HTMLFormElement, event: Event) {
       .then(updatedEvent => currentCalendar!.editEvent(updatedEvent))
       .then(() => drawEventList())
       .finally(() => {
-        this.classList.remove("was-validated");
-        ui.cleaningEventForm.reset();
+        ui.clearForm();
         ui.alertSaved.classList.remove("visually-hidden");
         ui.alertSaved.scrollIntoView();
         setTimeout(() => ui.alertSaved.classList.add("visually-hidden"), 3000);
@@ -154,8 +153,7 @@ function handleCleaningEventSave(this: HTMLFormElement, event: Event) {
       .then(insertedEvent => currentCalendar!.addEvent(insertedEvent))
       .then(() => drawEventList())
       .finally(() => {
-        this.classList.remove("was-validated");
-        ui.cleaningEventForm.reset();
+        ui.clearForm();
         ui.alertSaved.classList.remove("visually-hidden");
         ui.alertSaved.scrollIntoView();
         setTimeout(() => ui.alertSaved.classList.add("visually-hidden"), 3000);
@@ -182,32 +180,7 @@ function handleIsSignedInChange(isSignedIn: boolean): void {
   }
 }
 
-ui.frequency.addEventListener("change", handleFrequencyChange);
-
-function handleFrequencyChange(this: HTMLSelectElement) {
-  const frequencyType = this.value;
-
-  ui.intervalWeek.classList.toggle("d-none", frequencyType !== "WEEKLY");
-  ui.intervalMonth.classList.toggle("d-none", frequencyType !== "MONTHLY");
-  ui.intervalYear.classList.toggle("d-none", frequencyType !== "YEARLY");
-  ui.weekly.classList.toggle("d-none", frequencyType !== "WEEKLY");
-  ui.monthly.classList.toggle("d-none", frequencyType !== "MONTHLY");
-  ui.yearly.classList.toggle("d-none", frequencyType !== "YEARLY");
-
-  if (frequencyType === "WEEKLY") {
-    ui.weeklyFrequency.disabled = false;
-    ui.monthlyFrequency.disabled = true;
-    ui.yearlyFrequency.disabled = true;
-  } else if (frequencyType === "MONTHLY") {
-    ui.weeklyFrequency.disabled = true;
-    ui.monthlyFrequency.disabled = false;
-    ui.yearlyFrequency.disabled = true;
-  } else if (frequencyType === "YEARLY") {
-    ui.weeklyFrequency.disabled = true;
-    ui.monthlyFrequency.disabled = true;
-    ui.yearlyFrequency.disabled = false;
-  }
-}
+ui.frequency.addEventListener("change", () => ui.resetFormValidations());
 
 
 function preloadDates() {
@@ -245,15 +218,15 @@ ui.cleaningEventForm.addEventListener("submit", handleCleaningEventSave);
 
 //Event Listener for checked/unchecked weekdays
 ui.weekday.forEach(elementWeekday =>
-  elementWeekday.addEventListener("change", atLeastOneDayIsChecked));
+  elementWeekday.addEventListener("change", () => ui.resetFormValidations()));
 
 //Event Listener for monthly radio choices
 ui.monthlyRadio.forEach(radio =>
-  radio.addEventListener("change", monthlyRadioChoice));
+  radio.addEventListener("change", () => ui.resetFormValidations()));
 
 //Event Listener for yearly radio choices
 ui.yearlyRadios.forEach(radio =>
-  radio.addEventListener("change", yearlyRadiosChoice));
+  radio.addEventListener("change", () => ui.resetFormValidations()));
 
 preloadDates();
 preloadMonths();
@@ -283,8 +256,6 @@ function editEvent(event: gapi.client.calendar.Event) {
   ui.frequency.value = frequency;
   ui.interval.valueAsNumber = rrule.options.interval;
 
-  handleFrequencyChange.apply(ui.frequency);
-
   if (frequency === "WEEKLY") {
     fillInWeeklyRule(rrule);
   }
@@ -294,6 +265,8 @@ function editEvent(event: gapi.client.calendar.Event) {
   if (frequency === "YEARLY") {
     fillInYearlyRule(rrule);
   }
+
+  ui.resetFormValidations();
 }
 
 function fillInWeeklyRule(rrule: RRule) {
@@ -304,11 +277,12 @@ function fillInWeeklyRule(rrule: RRule) {
 }
 
 function filInMonthlyRule(rrule: RRule) {
+  console.log(rrule);
   if (rrule.options.bymonthday.length > 0) {
     ui.montlyFirstChoice.checked = true;
     ui.onSpecificDay.valueAsNumber = rrule.options.bymonthday[0];
   }
-  if (rrule.options.byweekday.length > 0) {
+  if (rrule.options.byweekday?.length > 0) {
     ui.monthlySecondChoice.checked = true;
     ui.weekCountForMonthly.value = rrule.options.bysetpos[0].toString();
     ui.weekdayMonthly.value = rrule.options.byweekday[0].toString();
@@ -320,53 +294,11 @@ function fillInYearlyRule(rrule: RRule) {
     ui.yearlyFirstChoice.checked = true;
     ui.dateOfTheMonth.valueAsNumber = rrule.options.bymonthday[0];
     ui.monthFirstOption.value = rrule.options.bymonth[0].toString();
-
   }
-  if (rrule.options.byweekday.length > 0) {
+  if (rrule.options.byweekday?.length > 0) {
     ui.yearlySecondChoice.checked = true;
     ui.weekCountForYearly.value = rrule.options.bysetpos[0].toString();
     ui.weekdayYearly.value = rrule.options.byweekday[0].toString();
     ui.monthSecondOption.value = rrule.options.bymonth[0].toString();
-  }
-}
-
-function atLeastOneDayIsChecked() {
-  const elementsWeekday = ui.weekday;
-  let isChecked = false;
-  for (let i = 0; i < elementsWeekday.length; i++) {
-    if (elementsWeekday[i].checked) {
-      isChecked = true;
-    }
-  }
-  for (let j = 0; j < elementsWeekday.length; j++) {
-    elementsWeekday[j].required = !isChecked;
-  }
-}
-
-function monthlyRadioChoice(this: HTMLInputElement) {
-  if (this.id === "montlyFirstChoice") {
-    ui.onSpecificDay.required = true;
-    ui.weekCountForMonthly.required = false;
-    ui.weekdayMonthly.required = false;
-  } else { // this.id === "montlySecondChoice"
-    ui.onSpecificDay.required = false;
-    ui.weekCountForMonthly.required = true;
-    ui.weekdayMonthly.required = true;
-  }
-}
-
-function yearlyRadiosChoice(this: HTMLInputElement) {
-  if (this.id === "yearlyFirstChoice") {
-    ui.monthFirstOption.required = true;
-    ui.dateOfTheMonth.required = true;
-    ui.weekCountForYearly.required = false;
-    ui.weekdayYearly.required = false;
-    ui.monthSecondOption.required = false;
-  } else {
-    ui.monthFirstOption.required = false;
-    ui.dateOfTheMonth.required = false;
-    ui.weekCountForYearly.required = true;
-    ui.weekdayYearly.required = true;
-    ui.monthSecondOption.required = true;
   }
 }
